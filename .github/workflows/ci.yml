@@ -1,0 +1,53 @@
+# CI for the Pixie sandbox target repo.
+#
+# This exists so Pixie's chain has something real to gate on: SWE opens a PR,
+# these checks run, QA maps their results into `qa_report`, and Reviewer
+# refuses to approve while they're red. Without it every Feature comes back
+# `partial` ("nothing verified this change"), which is honest but never green.
+#
+# The job is deliberately named `ci` — that string is the GitHub check name,
+# and it's what Pixie's `PIXIE_REQUIRED_CHECKS` matches on. Renaming the job
+# renames the check and silently stops it gating.
+#
+# Note for humans: Pixie's GitHub App cannot edit this file. It holds
+# `contents: write` but not `workflows`, so an agent can change application
+# code but not the checks that judge it. That separation is intentional.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        # Next's build also typechecks, but running tsc separately means a
+        # type error reports as a type error rather than as a build failure.
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
