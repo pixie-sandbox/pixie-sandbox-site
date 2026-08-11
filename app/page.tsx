@@ -59,6 +59,7 @@ export default function Home() {
             Documentation
           </a>
         </div>
+              <p data-pixie-probe>Session 3b probe</p>
       </main>
     </div>
   );
