@@ -1,0 +1,35 @@
+{
+  "components_touched": [
+    {
+      "change_kind": "new",
+      "name": "components/Footer.tsx",
+      "summary": "A new stateless component that displays the current year and a link to the GitHub repository. It will use Tailwind CSS for theming support."
+    },
+    {
+      "change_kind": "modify",
+      "name": "app/layout.tsx",
+      "summary": "Import and include the `<Footer />` component within the `<body>` tag. The body already uses `flex flex-col` and `min-h-full`, so the footer should be placed at the bottom of the flex container."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Specific padding/margin values (SWE to use existing site spacing patterns)."
+  ],
+  "feature_id": "ccf0f00d-11a5-4ddb-9d29-d8ce9a8d6dcf",
+  "rationale": "The architecture follows the decisions recorded in Mission memory: creating a standalone `components/Footer.tsx` and integrating it into `app/layout.tsx`. \n\nI verified `app/layout.tsx` uses a flexbox layout (`flex flex-col min-h-full`), which is ideal for a \"sticky\" footer pattern where the footer stays at the bottom even on short pages. Since the `components/` directory was not found during file listing, the SWE will need to create it.\n\nStyling will rely on Tailwind CSS utilities to satisfy the requirement for light/dark mode support without introducing new design tokens.\n\n## Memory writes\n- decision: Footer component located at `components/Footer.tsx`.\n- decision: Footer integrated into `app/layout.tsx`.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Use standard `new Date().getFullYear()` for client-side or server-side rendering consistency in this simple use case.",
+      "risk": "Hydration mismatch if the year is calculated differently on server vs client (unlikely for a static year)."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Use existing Tailwind CSS design tokens for colors (e.g., text-foreground, text-muted-foreground) to ensure light/dark mode compatibility.",
+    "Ensure the GitHub link has `target=\"_blank\"` and `rel=\"noopener noreferrer\"`.",
+    "Place the `<Footer />` at the bottom of the `<body>` in `app/layout.tsx`.",
+    "The `components/` directory does not exist; create it."
+  ]
+}
