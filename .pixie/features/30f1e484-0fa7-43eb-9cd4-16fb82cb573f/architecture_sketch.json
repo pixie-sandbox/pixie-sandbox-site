@@ -1,0 +1,36 @@
+{
+  "components_touched": [
+    {
+      "change_kind": "new",
+      "name": "app/not-found.tsx",
+      "summary": "Next.js special file to intercept 404 errors. It will use the site's standard layout by virtue of being in the app directory, but we must ensure it fits the design."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Specific copy for the 'helpful explanation' (SWE to use a professional, simple tone as per BA spec)."
+  ],
+  "feature_id": "30f1e484-0fa7-43eb-9cd4-16fb82cb573f",
+  "rationale": "The implementation uses Next.js's convention for 404 pages by creating `app/not-found.tsx`. Since `app/layout.tsx` wraps all children in the `ThemeProvider` and provides the `header` and `Footer`, the new 404 page will automatically inherit the site's structure and theme capabilities.\n\nI have mapped the visual requirements to the existing design patterns found in `app/page.tsx`:\n- Backgrounds: `bg-zinc-50 dark:bg-black` or `bg-white dark:bg-black`.\n- Text: `text-black dark:text-zinc-50` for headings, `text-zinc-600 dark:text-zinc-400` for body.\n- Primary Button: `bg-foreground text-background` (as seen in the Vercel deploy button).\n\nThe 404 page will be a functional component that implements a centered hero layout.\n\n## Memory writes\n- decision: Use `app/not-found.tsx` for custom 404 handling to leverage Next.js built-in routing.\n- decision: Re-use the design system from `app/page.tsx` (zinc color palette and foreground/background button styles) to ensure visual consistency.\n- constraint: The 404 page must be accessible via keyboard and screen readers using semantic HTML.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Verify that the page inherits the ThemeProvider correctly via the RootLayout and uses standard Tailwind classes to avoid flash of unstyled content (FOUC).",
+      "risk": "The custom 404 page might not inherit the dark mode correctly if it attempts to bypass the RootLayout."
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Ensure semantic HTML (h1, p, button/a) is used.",
+      "risk": "Accessibility regressions if custom layout elements are not properly marked up."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Use `app/not-found.tsx` to leverage Next.js's built-in 404 handling.",
+    "Style the page using the existing Tailwind tokens used in `app/page.tsx` (e.g., `zinc-600`, `zinc-400`, `zinc-950`, `zinc-50`).",
+    "Ensure the 'Return to Home' button uses the 'anz-blue' equivalent or the primary branding style seen in the current site. Based on `page.tsx`, primary actions use `bg-foreground text-background`.",
+    "The layout must be centered 'hero' style using `flex flex-col items-center justify-center`.",
+    "Must reside within the existing site wrapper (Header/Footer) provided by `layout.tsx`."
+  ]
+}
