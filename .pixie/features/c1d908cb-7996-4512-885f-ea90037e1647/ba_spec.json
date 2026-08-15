@@ -1,0 +1,158 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "A page that is shorter than the viewport height",
+      "id": "AC1",
+      "then": "The 'back to top' control is not present in the DOM or is hidden from view.",
+      "when": "The user views the page"
+    },
+    {
+      "given": "A page that is taller than the viewport height",
+      "id": "AC2",
+      "then": "The 'back to top' control is not visible.",
+      "when": "The user has not yet scrolled"
+    },
+    {
+      "given": "A page that is taller than the viewport height",
+      "id": "AC3",
+      "then": "The 'back to top' control becomes visible in the footer.",
+      "when": "The user scrolls down the page"
+    },
+    {
+      "given": "The 'back to top' control is visible",
+      "id": "AC4",
+      "then": "The page performs a smooth scroll animation to the top (y=0).",
+      "when": "The user clicks the icon or presses Enter/Space while focused"
+    },
+    {
+      "given": "A screen reader is active",
+      "id": "AC5",
+      "then": "The device announces 'Back to top' (via aria-label).",
+      "when": "The user navigates to the control"
+    },
+    {
+      "given": "The code is being committed",
+      "id": "AC6",
+      "then": "The build must pass with no linting errors or warnings.",
+      "when": "The build/linting process runs"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The 'smooth scroll' behavior is handled via CSS (scroll-behavior: smooth) or standard Web APIs.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The icon will be implemented as an SVG or an icon font already present in the project.",
+      "confidence": "medium"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Add an icon-based 'back to top' control within the existing sandbox site footer. The control should only become visible once a user has begun scrolling on a page that is long enough to require scrolling. When activated, the control will perform a smooth scroll back to the top of the page. The control must be accessible via keyboard navigation and provide clear context to screen-reader users via an aria-label.",
+  "constraints": [
+    {
+      "detail": "Must pass all existing repository linting and CI checks.",
+      "kind": "other"
+    },
+    {
+      "detail": "Scroll event listeners must be optimized (e.g., debounced or using IntersectionObserver) to avoid main-thread jank.",
+      "kind": "performance"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "c1d908cb-7996-4512-885f-ea90037e1647",
+  "flows": [],
+  "must": [
+    "The control must be an icon-based trigger (e.g., an upward arrow).",
+    "The control must be grouped with existing elements in the site footer.",
+    "The control must only be visible if the page is scrollable AND the user has initiated a scroll event.",
+    "The control must trigger a smooth scroll animation to the top of the document.",
+    "The control must be focusable via keyboard (Tab key).",
+    "The control must include an `aria-label=\"Back to top\"` for screen-reader accessibility.",
+    "The implementation must pass all existing repository linting and build checks."
+  ],
+  "open_questions": [],
+  "outcome": "Users can return to the top of long pages with a single, smooth action via a footer-based icon.",
+  "rationale": "The requirement for visibility only after scrolling prevents 'dead' UI elements on short pages. Using an icon in the footer maintains a clean aesthetic while the smooth scroll and aria-label ensure high usability and accessibility standards.",
+  "risks": [
+    {
+      "mitigation": "Ensure all code follows the project's established Prettier/ESLint configurations before submission.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Linting failures"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [
+      "Build success rate"
+    ],
+    "stages": [
+      "Development",
+      "UAT",
+      "Production canary",
+      "Full release"
+    ]
+  },
+  "schema_version": 2,
+  "should": [
+    "The icon should be visually consistent with the existing sandbox site design language."
+  ],
+  "user_stories": [],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Quickly navigate back to the top of a long content page."
+      ],
+      "name": "General User",
+      "pain_points": [
+        "Manual scrolling or repeated keyboard presses to reach the header."
+      ]
+    },
+    {
+      "jobs_to_be_done": [
+        "Navigate the site structure using keyboard or screen reader."
+      ],
+      "name": "Assistive Technology User",
+      "pain_points": [
+        "Lack of clear semantic meaning for icon-only buttons."
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "children": [
+              {
+                "style": "secondary",
+                "text": "\u2191",
+                "type": "button"
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "emphasis": "muted",
+                "text": "\u00a9 2024 Pixie Sandbox",
+                "type": "text"
+              }
+            ],
+            "title": "Footer Container",
+            "type": "card"
+          }
+        ],
+        "title": "Sandbox Site Footer",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Sandbox Footer with Back to Top"
+    }
+  ],
+  "wont": [
+    "The control will not be a floating/fixed position element (it must reside in the footer).",
+    "The control will not appear as a text-only link."
+  ]
+}
