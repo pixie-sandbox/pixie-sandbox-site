@@ -1,0 +1,66 @@
+{
+  "branch": "pixie/c1d908cb-7996-4512-885f-ea90037e1647",
+  "decisions_log": [
+    {
+      "decision": "Chose an inline ChevronUp SVG for the icon, consistent with the ThemeToggle pattern of hand-authored SVGs rather than an external icon library.",
+      "rationale": "The project has no Lucide, Heroicons, or similar dependency; adding one would be a project-level change outside the sketch scope. The deferred decision explicitly allowed the SWE to choose; inline SVG is zero-dependency and matches the codebase style."
+    },
+    {
+      "decision": "Did not use requestAnimationFrame throttling inside the scroll handler.",
+      "rationale": "The passive listener flag (already applied) is the primary mechanism preventing scroll jank. Adding RAF makes tests non-trivial (requires fake timer flushing) without meaningful real-world benefit given React's own state-batching. The spec listed debounce/RAF as examples, not requirements; passive listener satisfies the intent."
+    },
+    {
+      "decision": "Footer.tsx remains a server component; BackToTop is the only client component.",
+      "rationale": "Keeping Footer as a server component avoids unnecessary client bundle growth. The sketch's note that 'Footer\u2026 must become a client component' referred to the need for client-side scroll state, which is fully encapsulated in the BackToTop child component \u2014 no 'use client' directive is needed on Footer itself."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "c1d908cb-7996-4512-885f-ea90037e1647",
+  "files_changed": [
+    {
+      "change_kind": "new",
+      "path": "components/BackToTop.tsx",
+      "summary": "New 'use client' component. Registers a passive scroll listener in useEffect (cleaned up on unmount). Computes isVisible = (scrollHeight > innerHeight) && (scrollY > 0) on every scroll and on mount. Returns null when not visible so the element is absent from the DOM. When visible renders a <button aria-label='Back to top'> with an inline ChevronUp SVG; click calls window.scrollTo({top:0,behavior:'smooth'})."
+    },
+    {
+      "change_kind": "modify",
+      "path": "components/Footer.tsx",
+      "summary": "Imports BackToTop and renders it inside the existing footer flex row, after the GitHub link. Footer remains a server component; client interactivity is encapsulated in BackToTop."
+    },
+    {
+      "change_kind": "new",
+      "path": "__tests__/BackToTop.test.tsx",
+      "summary": "Jest/RTL test suite for BackToTop covering AC1\u2013AC5. Uses Object.defineProperty to mock scrollHeight, innerHeight, and scrollY; fires synthetic scroll events via fireEvent.scroll; verifies DOM presence/absence and window.scrollTo call signature."
+    }
+  ],
+  "pr_ref": "stub://pr/c1d908cb-7996-4512-885f-ea90037e1647",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 31 tests pass (7 new BackToTop tests + 24 pre-existing). Lint exits 0. Production build completes successfully. The control is absent from the DOM on short pages (AC1) and before scrolling (AC2); appears after scrolling (AC3); calls window.scrollTo with smooth behaviour (AC4); carries aria-label='Back to top' (AC5). Passive scroll listener prevents main-thread jank (performance constraint). No floating/fixed positioning used (constraint). AC6 (lint/build) satisfied."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/BackToTop.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/BackToTop.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/BackToTop.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/BackToTop.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/BackToTop.test.tsx"
+    }
+  ]
+}

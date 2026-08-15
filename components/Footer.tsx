@@ -1,3 +1,5 @@
+import BackToTop from './BackToTop';
+
 export default function Footer() {
   const year = new Date().getFullYear();
 
@@ -15,6 +17,7 @@ export default function Footer() {
         >
           GitHub
         </a>
+        <BackToTop />
       </div>
     </footer>
   );
