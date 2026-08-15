@@ -1,0 +1,61 @@
+{
+  "components_touched": [
+    {
+      "change_kind": "new",
+      "name": "components/ThemeToggle.tsx",
+      "summary": "A client-side component providing the UI (Sun/Moon icons) to toggle between light and dark modes."
+    },
+    {
+      "change_kind": "new",
+      "name": "components/ThemeProvider.tsx",
+      "summary": "A React Context provider to manage the current theme state and provide a toggle function to the UI."
+    },
+    {
+      "change_kind": "modify",
+      "name": "app/layout.tsx",
+      "summary": "Wrap the application in the ThemeProvider and inject a blocking `<script>` in the `<head>` to prevent FOUC by applying the correct class to `<html>` before render."
+    },
+    {
+      "change_kind": "modify",
+      "name": "app/globals.css",
+      "summary": "Ensure Tailwind's dark mode strategy is explicitly set to 'class' if not already configured, and verify existing CSS variables respond to the `.dark` class."
+    }
+  ],
+  "contracts": [
+    {
+      "definition": "The theme state is managed via React Context. Components can consume `theme` and `toggleTheme` via a `useTheme` hook.",
+      "kind": "event"
+    }
+  ],
+  "data_changes": [
+    {
+      "change": "Store the user's theme preference ('light' or 'dark') in `localStorage` under the key 'theme'.",
+      "entity": "localStorage",
+      "migration_needed": false
+    }
+  ],
+  "deferred_decisions": [
+    "Specific icon library for Sun/Moon (SWE can choose Lucide-react or simple SVG paths)."
+  ],
+  "feature_id": "46da4a4e-bd9b-458e-9f44-e5f54e75d6c6",
+  "rationale": "The architecture follows the BA spec and honours prior Mission decisions. \n\n1. **FOUC Prevention**: To meet the \"must\" requirement of preventing flash, a blocking script is injected into the `html` head via `layout.tsx`. This script checks `localStorage` first, then falls back to `window.matchMedia('(prefers-color-scheme: dark)')`. It applies the `.dark` class to `document.documentElement` immediately.\n2. **Persistence**: `localStorage` is used as decided in prior missions.\n3. **State Management**: A `ThemeProvider` (React Context) is used to provide a clean API (`useTheme`) for the `ThemeToggle` component, ensuring the UI stays in sync with the DOM class.\n4. **Hydration**: To avoid hydration mismatches, the `ThemeToggle` component should only render its icon after the component has mounted on the client.\n\nPrior decisions honored:\n- Use `localStorage` for persistence.\n- Implement a blocking script in `<head>` to prevent FOUC.\n- Use existing Tailwind CSS dark mode classes (via 'class' strategy).\n\n## Memory writes\n- decision: Implement theme management using a React Context provider and a manual blocking script in the document head to prevent FOUC.\n- decision: Use 'class' strategy for Tailwind dark mode to allow programmatic switching via the `html` element class list.\n- constraint: The theme toggle must be a client-side component to handle interactivity and `localStorage` access.",
+  "risks": [
+    {
+      "likelihood": "medium",
+      "mitigation": "Use a small, inline blocking script in the `RootLayout` that reads `localStorage` and `prefers-color-scheme` and applies the `.dark` class to the `document.documentElement` synchronously.",
+      "risk": "Flash of unstyled content (FOUC) during page load."
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Use `useEffect` in the `ThemeToggle` component to ensure it only accesses `localStorage` and `window` after mounting on the client.",
+      "risk": "Hydration mismatch errors in Next.js due to server/client theme discrepancy."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Stay within the listed components_touched.",
+    "Do not use a third-party library like `next-themes` unless explicitly requested; implement the logic manually to minimize dependencies.",
+    "Ensure the blocking script in `layout.tsx` is minimal and executes before the body renders.",
+    "Use Tailwind's `class` strategy for dark mode."
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "branch": "pixie/46da4a4e-bd9b-458e-9f44-e5f54e75d6c6",
+  "decisions_log": [
+    {
+      "decision": "Used plain inline SVG paths for Sun/Moon icons rather than lucide-react.",
+      "rationale": "lucide-react is not in package.json. Adding a new dependency was not warranted for two simple icons; SVG paths keep the bundle minimal and introduce no install-time risk."
+    },
+    {
+      "decision": "ThemeToggle renders a same-size <div aria-hidden> placeholder on server and initial client paint, then mounts the real button after useEffect.",
+      "rationale": "Server-rendered HTML always reflects theme='light' (no DOM access), so rendering the button server-side would produce the wrong icon and cause a hydration mismatch. The placeholder prevents layout shift while still matching the server's output."
+    },
+    {
+      "decision": "ThemeProvider syncs from document.documentElement.classList in useEffect rather than reading localStorage directly.",
+      "rationale": "The blocking script is the single source of truth for the initial class; reading the DOM avoids duplicating the fallback logic and means the React state always matches what the user actually sees, even in edge cases where the script ran before hydration."
+    },
+    {
+      "decision": "Placed ThemeToggle inside a <header> element added to RootLayout rather than modifying Footer.tsx.",
+      "rationale": "Footer.tsx is not in components_touched. A dedicated <header> is the idiomatic location for site-wide controls and provides better visual affordance (top-of-page) than a footer toggle."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "46da4a4e-bd9b-458e-9f44-e5f54e75d6c6",
+  "files_changed": [
+    {
+      "change_kind": "new",
+      "path": "components/ThemeProvider.tsx",
+      "summary": "React Context provider exposing theme ('light'|'dark') and toggleTheme. On mount syncs state with whatever .dark class the blocking script already applied to <html>. toggleTheme flips state, persists to localStorage, and toggles the .dark class."
+    },
+    {
+      "change_kind": "new",
+      "path": "components/ThemeToggle.tsx",
+      "summary": "Client-side icon button (Sun/Moon inline SVGs) that calls toggleTheme from useTheme. Defers icon rendering until after client mount to prevent hydration mismatches. Accessible via aria-label that reflects the current mode."
+    },
+    {
+      "change_kind": "modify",
+      "path": "app/layout.tsx",
+      "summary": "Added a minimal inline blocking <script> into <head> that reads localStorage then prefers-color-scheme and applies .dark to <html> before any paint (FOUC prevention). Wrapped body in ThemeProvider and added a persistent <header> containing ThemeToggle so the toggle is reachable from every page."
+    },
+    {
+      "change_kind": "modify",
+      "path": "app/globals.css",
+      "summary": "Added Tailwind v4 @custom-variant dark declaration to use the class strategy. Replaced @media (prefers-color-scheme: dark) block with a .dark CSS rule so dark: utilities and CSS variables activate from the programmatic class rather than the media query."
+    }
+  ],
+  "pr_ref": "stub://pr/46da4a4e-bd9b-458e-9f44-e5f54e75d6c6",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All Must requirements met: visible toggle on every page, localStorage persistence, OS preference respected on first visit, blocking script prevents FOUC. Tailwind class strategy configured via @custom-variant dark in globals.css. No third-party theme library used. Blocking script is a single minified IIFE. 24/24 tests pass across Footer, ThemeProvider, and ThemeToggle suites."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/ThemeProvider.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/ThemeProvider.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/ThemeProvider.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/ThemeToggle.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/ThemeToggle.test.tsx"
+    }
+  ]
+}
