@@ -58,7 +58,7 @@ describe('ThemeProvider', () => {
         ) {
           document.documentElement.classList.add('dark');
         }
-      } catch (_) {
+      } catch {
         // intentionally empty – mirrors the try/catch in the real script
       }
     }

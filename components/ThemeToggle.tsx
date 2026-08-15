@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useTheme } from './ThemeProvider';
 
 function SunIcon() {
@@ -43,17 +43,28 @@ function MoonIcon() {
 }
 
 /**
+ * useSyncExternalStore with a no-op subscription and asymmetric snapshots is
+ * the React-idiomatic way to detect server vs. client rendering without calling
+ * setState inside an effect. getServerSnapshot returns false; getSnapshot
+ * (client) returns true – so `mounted` flips to true on the first client render
+ * with zero extra renders and no hydration mismatch.
+ */
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    () => () => {},   // subscribe – nothing to listen to, store never changes
+    () => true,       // getSnapshot (client)
+    () => false,      // getServerSnapshot (server / SSR)
+  );
+}
+
+/**
  * Icon-based toggle that switches between light and dark themes. Defers
  * rendering the icon until after client-side mounting to avoid hydration
  * mismatches caused by server/client theme discrepancy.
  */
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   // Render a same-size placeholder on the server and during initial
   // client paint to prevent layout shift and hydration errors.

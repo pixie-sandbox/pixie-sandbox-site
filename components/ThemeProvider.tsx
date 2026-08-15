@@ -2,9 +2,9 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
-  useEffect,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
 
@@ -17,30 +17,51 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+// ---------------------------------------------------------------------------
+// Module-level pub-sub for theme changes.
+//
+// Listeners are registered by useSyncExternalStore and called explicitly from
+// toggleTheme (inside the React event handler) so React's scheduler sees the
+// update as part of the current batch – avoiding "not wrapped in act" warnings
+// and ensuring synchronous snapshot propagation.
+// ---------------------------------------------------------------------------
+type Listener = () => void;
+const themeListeners = new Set<Listener>();
+
+function subscribe(callback: Listener): () => void {
+  themeListeners.add(callback);
+  return () => themeListeners.delete(callback);
+}
+
+/** Read the current theme from the DOM class applied by the anti-FOUC script. */
+function getTheme(): Theme {
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+/** Server-side snapshot – the blocking script will correct this before paint. */
+function getServerTheme(): Theme {
+  return 'light';
+}
+
 /**
  * Provides theme state (light | dark) and a toggleTheme function to the
- * component tree. The initial state is synchronised on mount with the class
- * the blocking inline script has already applied to <html>, which means the
- * React state tracks whatever the page is actually showing.
+ * component tree. Uses useSyncExternalStore so the theme is derived directly
+ * from the DOM class set by the anti-FOUC blocking script in layout.tsx – no
+ * setState inside an effect, no cascading renders.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Start with 'light' – the blocking script has already set the correct class
-  // on <html> before paint, so no visual flash occurs even if React's initial
-  // state differs.
-  const [theme, setTheme] = useState<Theme>('light');
+  const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
 
-  useEffect(() => {
-    // Sync React state with the class the blocking script applied.
-    const isDark = document.documentElement.classList.contains('dark');
-    setTheme(isDark ? 'dark' : 'light');
-  }, []);
-
-  const toggleTheme = () => {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
+  const toggleTheme = useCallback(() => {
+    const next: Theme = document.documentElement.classList.contains('dark')
+      ? 'light'
+      : 'dark';
     localStorage.setItem('theme', next);
     document.documentElement.classList.toggle('dark', next === 'dark');
-  };
+    // Notify listeners from within the React event handler so the update is
+    // batched correctly and remains inside any enclosing act() boundary.
+    themeListeners.forEach((fn) => fn());
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
