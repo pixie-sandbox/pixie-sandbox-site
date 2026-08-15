@@ -2,20 +2,24 @@
   "branch": "pixie/46da4a4e-bd9b-458e-9f44-e5f54e75d6c6",
   "decisions_log": [
     {
-      "decision": "Used SVG paths for Sun/Moon icons instead of Lucide-react",
-      "rationale": "Avoids adding a new dependency; inline SVGs are zero-cost and the icon shapes are simple enough to inline directly."
+      "decision": "Used inline SVG paths for Sun/Moon icons instead of Lucide-react.",
+      "rationale": "The deferred decision allowed either approach. Inline SVGs avoid adding a new dependency and keep the bundle small; the paths used are standard Feather/Lucide equivalents."
     },
     {
-      "decision": "Used useSyncExternalStore with a module-level pub-sub instead of useState+useEffect for theme state",
-      "rationale": "The eslint-config-next rule react-hooks/set-state-in-effect forbids calling setState directly inside useEffect bodies. useSyncExternalStore with explicit listener notification from within the event handler satisfies the linter, avoids cascading renders, and remains hydration-safe."
+      "decision": "Derived theme state from the DOM class via useSyncExternalStore rather than useState in an effect.",
+      "rationale": "setState inside useEffect produces a double-render and 'not wrapped in act()' warnings in tests. useSyncExternalStore with asymmetric server/client snapshots gives synchronous, batched updates with no extra renders and no hydration mismatch."
     },
     {
-      "decision": "Used useSyncExternalStore asymmetric snapshots (server=false, client=true) for mount detection in ThemeToggle",
-      "rationale": "The idiomatic React 18 replacement for the useEffect+setMounted(true) pattern; no extra render cycle, no act() boundary issues in tests."
+      "decision": "ThemeToggle renders a same-size aria-hidden placeholder div on the server and during initial client paint.",
+      "rationale": "Server-rendered HTML always reflects theme='light'; rendering the real button server-side would produce the wrong icon and cause a hydration mismatch. The placeholder matches server output and prevents layout shift."
     },
     {
-      "decision": "Blocking FOUC script reads localStorage then falls back to window.matchMedia prefers-color-scheme",
-      "rationale": "Satisfies AC1 (OS preference on first visit) and AC2 (stored preference persists) without any server-side knowledge of the user's preference."
+      "decision": "Placed ThemeToggle inside a dedicated <header> added to RootLayout rather than any existing component.",
+      "rationale": "Footer.tsx is not in components_touched. A <header> is the idiomatic position for site-wide controls and provides better visual affordance than a footer toggle."
+    },
+    {
+      "decision": "Removed the prefers-color-scheme CSS media query from globals.css.",
+      "rationale": "Keeping the media query alongside the class-based approach would allow background colour to respond to OS preference changes even after the user has set an explicit manual preference, creating inconsistency between CSS variables and React state."
     }
   ],
   "deferred_questions": [],
@@ -24,32 +28,22 @@
     {
       "change_kind": "new",
       "path": "components/ThemeProvider.tsx",
-      "summary": "React Context provider managing light/dark theme via useSyncExternalStore + module-level pub-sub. Reads initial theme from the DOM class set by the anti-FOUC blocking script. Exposes useTheme hook."
+      "summary": "React Context provider using useSyncExternalStore to derive theme from the DOM class set by the anti-FOUC blocking script; exposes useTheme hook with theme and toggleTheme."
     },
     {
       "change_kind": "new",
       "path": "components/ThemeToggle.tsx",
-      "summary": "Client-side icon toggle (SVG Sun/Moon). Uses useSyncExternalStore for hydration-safe mount detection, then delegates to useTheme. Renders a same-size placeholder on the server to prevent layout shift."
+      "summary": "Client-side icon toggle (Sun/Moon SVGs) that defers rendering until mounted to avoid hydration mismatches; reads theme and toggleTheme from ThemeContext."
     },
     {
       "change_kind": "modify",
       "path": "app/layout.tsx",
-      "summary": "Added blocking inline script in <head> to prevent FOUC by applying .dark to <html> before paint. Wrapped body in ThemeProvider and placed ThemeToggle in the persistent site header."
+      "summary": "Injects a minimal blocking <script> in <head> to apply the .dark class before first paint (reads localStorage then falls back to prefers-color-scheme); wraps body in ThemeProvider and adds a <header> containing ThemeToggle on every page."
     },
     {
       "change_kind": "modify",
       "path": "app/globals.css",
-      "summary": "Added Tailwind v4 @custom-variant dark rule (class strategy) and .dark CSS block with dark-mode background/foreground tokens."
-    },
-    {
-      "change_kind": "new",
-      "path": "__tests__/ThemeProvider.test.tsx",
-      "summary": "Unit tests for ThemeProvider: blocking-script logic, initial state sync from DOM, toggleTheme state/DOM/localStorage changes, and useTheme-outside-provider error."
-    },
-    {
-      "change_kind": "new",
-      "path": "__tests__/ThemeToggle.test.tsx",
-      "summary": "Unit tests for ThemeToggle: button rendering, aria-label accuracy per theme, DOM class and localStorage mutations on click."
+      "summary": "Added @custom-variant dark rule for Tailwind's class strategy; added .dark CSS custom-property overrides for --background and --foreground; removed the prefers-color-scheme media query to avoid conflict with class-based approach."
     }
   ],
   "pr_ref": "stub://pr/46da4a4e-bd9b-458e-9f44-e5f54e75d6c6",
@@ -58,7 +52,7 @@
     "all_acs_have_tests": true,
     "all_must_addressed": true,
     "constraints_honoured": true,
-    "notes": "All three repo checks pass: jest (24/24 tests), eslint (0 errors, 0 warnings), next build (TypeScript clean). The implementation stays within the four components_touched listed in the sketch. No third-party theme library was added. Tailwind class strategy is used throughout."
+    "notes": "All 24 tests pass (npm test --ci). Lint clean (eslint). TypeScript clean (tsc --noEmit). Production build succeeds (next build). The blocking FOUC script is minimal and inlined into <head>. Tailwind 'class' strategy is implemented via @custom-variant dark in globals.css. No third-party theme library introduced. Implementation stays within the listed components_touched."
   },
   "tests_added": [
     {
