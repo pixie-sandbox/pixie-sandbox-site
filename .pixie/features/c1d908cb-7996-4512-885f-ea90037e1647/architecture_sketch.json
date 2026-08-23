@@ -1,0 +1,45 @@
+{
+  "components_touched": [
+    {
+      "change_kind": "modify",
+      "name": "components/Footer.tsx",
+      "summary": "Update Footer to include the 'Back to top' control. Since visibility depends on scroll state, this component (or a sub-component within it) must become a client component."
+    },
+    {
+      "change_kind": "new",
+      "name": "components/BackToTop.tsx",
+      "summary": "New client component responsible for listening to scroll events, managing visibility state (based on scroll position and page height), and handling the smooth scroll to top."
+    }
+  ],
+  "contracts": [
+    {
+      "definition": "Internal state within BackToTop component to track `isScrolled` (boolean) and `isPageScrollable` (boolean).",
+      "kind": "event"
+    }
+  ],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Specific icon choice (e.g., Lucide icon, Heroicon, or raw SVG) \u2014 SWE should choose one consistent with the existing project style."
+  ],
+  "feature_id": "c1d908cb-7996-4512-885f-ea90037e1647",
+  "rationale": "The requirement specifies that the control must live *within* the existing footer rather than floating. This means the `Footer` component (or a new child component) must manage visibility based on scroll state. \n\nI am proposing a new component `components/BackToTop.tsx` to encapsulate the scroll logic and state, which will then be imported and placed inside `components/Footer.tsx`. This follows the principle of separation of concerns. \n\nTo meet the ACs:\n1. **AC1 & AC2 (Visibility):** The component will check `window.innerHeight < document.documentElement.scrollHeight` to see if the page is scrollable, and `window.scrollY > 0` to see if the user has initiated scrolling.\n2. **AC3 (Visibility on scroll):** The visibility will be tied to the combined state of being scrollable and having a scroll position > 0.\n3. **AC4 (Smooth scroll):** Will use the standard Web API `window.scrollTo({ top: 0, behavior: 'smooth' })`.\n4. **AC5 (Accessibility):** Will use a `<button>` with `aria-label=\"Back to top\"`.\n5. **Performance:** I've noted the use of optimized scroll listening (e.g. `requestAnimationFrame` or simple debouncing) to avoid jank.\n\nPrior decisions regarding `Footer.tsx` being a standalone component in `components/Footer.tsx` are honored.\n\n## Memory writes\n- decision: The 'Back to top' control is implemented as a client-side component `BackToTop.tsx` and integrated into the existing `Footer.tsx`.\n- constraint: The 'Back to top' control must not be a floating/fixed element; it must reside within the footer's DOM hierarchy.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Ensure scroll event listener is cleaned up in `useEffect` return to prevent memory leaks. Use a passive listener if possible.",
+      "risk": "Memory leaks or performance issues from scroll event listeners."
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Use `window.innerHeight < document.documentElement.scrollHeight` check.",
+      "risk": "Control appearing on pages that don't require scrolling."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "The 'Back to top' control must be placed inside the existing `Footer.tsx` container, not as a fixed/floating element.",
+    "Use `window.scrollTo({ top: 0, behavior: 'smooth' })` for the scroll action.",
+    "Ensure the control is accessible: use an `<button>` element with `aria-label=\"Back to top\"` and an appropriate icon.",
+    "The control must only be visible if the user has scrolled AND the page is taller than the viewport."
+  ]
+}
