@@ -1,0 +1,77 @@
+{
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart LR\n    subgraph data_layer [Data Layer]\n        D[changelog.json] \n    end\n\n    subgraph app_routes [App Routes]\n        R_C[app/changelog/page.tsx] \n        R_X[app/changelog.xml/route.ts]\n    end\n\n    subgraph ui_components [UI Components]\n        C_L[ChangelogList.tsx] \n        C_E[ChangelogEntry.tsx] \n        C_T[\"Tooltip (new)\"]\n    end\n\n    D --> R_C\n    D --> R_X\n    R_C --> C_L\n    C_L --> C_E\n    C_E --> C_T",
+    "title": "Changelog Architecture"
+  },
+  "components_touched": [
+    {
+      "change_kind": "new",
+      "name": "data/changelog.json",
+      "summary": "Local JSON file containing changelog entries (title, description, date)."
+    },
+    {
+      "change_kind": "new",
+      "name": "app/changelog/page.tsx",
+      "summary": "Main page route for the changelog."
+    },
+    {
+      "change_kind": "new",
+      "name": "app/changelog.xml/route.ts",
+      "summary": "Next.js Route Handler to generate the RSS feed XML."
+    },
+    {
+      "change_kind": "new",
+      "name": "components/changelog/ChangelogList.tsx",
+      "summary": "Container component for rendering the list of entries."
+    },
+    {
+      "change_kind": "new",
+      "name": "components/changelog/ChangelogEntry.tsx",
+      "summary": "Displays an individual entry with relative date and tooltip."
+    },
+    {
+      "change_kind": "new",
+      "name": "components/ui/Tooltip.tsx",
+      "summary": "A simple, accessible tooltip component for displaying absolute timestamps."
+    }
+  ],
+  "contracts": [
+    {
+      "definition": "changelog.json shape: Array<{ title: string, description: string, date: string (ISO 8601) }>",
+      "kind": "api"
+    }
+  ],
+  "data_changes": [
+    {
+      "change": "Create file with initial seed data for: Footer, Dark Mode Toggle, Back-to-Top Control, and Custom 404 Page.",
+      "entity": "changelog.json",
+      "migration_needed": false
+    }
+  ],
+  "deferred_decisions": [
+    "Specific UI library for tooltips (e.g., Radix UI or a custom Tailwind-only implementation). Implementation should prioritize simplicity."
+  ],
+  "feature_id": "d12431a4-41f4-4579-80e5-24edf4f3c6d8",
+  "rationale": "The feature requires a new static-ish page and an RSS feed. I've chosen a local JSON file as the single source of truth to minimize complexity as requested. \n\nThe site currently uses a specific zinc palette; the new page will mirror the outer/inner div structure of `app/page.tsx` (bg-zinc-50/dark:bg-black outer, bg-white/dark:bg-black inner) to ensure visual continuity and automatic theme inheritance.\n\nI'm introducing a tooltip component for the relative-to-absolute date hover requirement. The RSS feed will be a Next.js Route Handler to allow for dynamic generation from the JSON source.\n\nPrior decisions honored:\n- Using existing zinc theme tokens for consistency.\n- Matching the layout pattern of the homepage (outer/inner container structure).\n- Supporting light/dark mode via existing `ThemeProvider` and Tailwind classes.\n\n## Memory writes\n- decision: Use a local `changelog.json` file as the single source of truth for the changelog page and RSS feed.\n- decision: Mirror the homepage layout (bg-zinc-50/dark:bg-black outer, bg-white/dark:bg-black inner) for the `/changelog` page to ensure visual continuity.\n- constraint: The changelog page must use existing Tailwind zinc theme tokens for light and dark modes.\n- constraint: The RSS feed must use standard ISO 8601 timestamps.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Use `Intl.RelativeTimeFormat` or a lightweight library like `date-fns` for consistent relative time strings.",
+      "risk": "Inconsistent relative time formatting."
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Verify the Content-Type header is set to `application/xml` or `text/xml` in the route handler.",
+      "risk": "RSS feed failing to parse in feed readers due to incorrect MIME type."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Match existing site's zinc-based theme (zinc-50, zinc-950, etc.).",
+    "Support both light and dark modes via Tailwind 'dark:' classes.",
+    "RSS feed must use standard ISO 8601 timestamps.",
+    "Tooltip must be accessible and follow existing design patterns.",
+    "Stay within the listed components and new files."
+  ]
+}

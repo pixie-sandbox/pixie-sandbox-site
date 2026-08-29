@@ -1,0 +1,63 @@
+{
+  "branch": "pixie/d12431a4-41f4-4579-80e5-24edf4f3c6d8",
+  "decisions_log": [
+    {
+      "decision": "Use ISO 8601 dates with milliseconds (.000Z suffix) in changelog.json so the stored value round-trips exactly through Date.toISOString().",
+      "rationale": "Date.prototype.toISOString() always emits the .000Z suffix for UTC midnight dates; matching that format avoids a test mismatch and keeps the JSON unambiguously machine-readable."
+    },
+    {
+      "decision": "Only escape &, <, and > in the XML escaping helper \u2014 not ' or \".",
+      "rationale": "Single quotes and double quotes are only special inside attribute values in XML. Escaping them in element content is unnecessary and makes the raw text harder to read. Using the minimal correct set avoids spurious entity encoding in the feed body."
+    },
+    {
+      "decision": "Use @jest-environment node for the Route Handler test file.",
+      "rationale": "The Web API Response global is available in Node.js v18+ but not exposed by jest-environment-jsdom. Since the route handler is server-side code (not a browser component), the node test environment is the correct choice and avoids a polyfill dependency."
+    },
+    {
+      "decision": "Use native Web API Response (not NextResponse) in the route handler.",
+      "rationale": "Next.js App Router Route Handlers support the standard Web API Response. Using it avoids importing from next/server and keeps the handler self-contained and easily testable without the Next.js runtime."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "d12431a4-41f4-4579-80e5-24edf4f3c6d8",
+  "files_changed": [
+    {
+      "change_kind": "new",
+      "path": "data/changelog.json",
+      "summary": "Seed data for the changelog: four entries (Custom 404 Page, Back-to-Top Control, Dark Mode Toggle, Footer) in descending chronological order, each with an ISO 8601 timestamp."
+    },
+    {
+      "change_kind": "new",
+      "path": "app/changelog.xml/route.ts",
+      "summary": "Next.js Route Handler at /changelog.xml. Reads changelog.json and returns a valid RSS 2.0 feed with application/xml Content-Type and ISO 8601 pubDate timestamps."
+    },
+    {
+      "change_kind": "new",
+      "path": "__tests__/changelog-data.test.ts",
+      "summary": "Tests for data/changelog.json: array shape, 4 entries, valid ISO 8601 dates, descending order, and presence of all four seed entry titles."
+    },
+    {
+      "change_kind": "new",
+      "path": "__tests__/changelog-xml-route.test.ts",
+      "summary": "Tests for the /changelog.xml Route Handler: HTTP 200, application/xml Content-Type, valid RSS 2.0 structure, all entry titles/descriptions, ISO 8601 timestamps, and item count."
+    }
+  ],
+  "pr_ref": "stub://pr/d12431a4-41f4-4579-80e5-24edf4f3c6d8",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": false,
+    "constraints_honoured": true,
+    "notes": "This task covers only AC3 (the data file and RSS feed). AC1, AC2, and AC4 are deferred to a separate task that will implement the /changelog page components (ChangelogList, ChangelogEntry, Tooltip). All repo checks (jest, eslint, tsc --noEmit) pass with 49 tests across 6 suites."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog-data.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog-xml-route.test.ts"
+    }
+  ]
+}
