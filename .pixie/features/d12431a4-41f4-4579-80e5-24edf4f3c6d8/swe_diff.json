@@ -2,20 +2,20 @@
   "branch": "pixie/d12431a4-41f4-4579-80e5-24edf4f3c6d8",
   "decisions_log": [
     {
-      "decision": "Use ISO 8601 dates with milliseconds (.000Z suffix) in changelog.json so the stored value round-trips exactly through Date.toISOString().",
-      "rationale": "Date.prototype.toISOString() always emits the .000Z suffix for UTC midnight dates; matching that format avoids a test mismatch and keeps the JSON unambiguously machine-readable."
+      "decision": "Tooltip implemented as a 'use client' component using useId() for aria-describedby linkage, with CSS-only hover visibility (Tailwind group/group-hover:). No external tooltip library.",
+      "rationale": "Sketch deferred the tooltip library choice and said to prioritise simplicity. Radix UI is not already in the project. A custom Tailwind-only tooltip is zero-dependency, matches the repo style, and satisfies AC2 and AC4 without adding a new dev dependency."
     },
     {
-      "decision": "Only escape &, <, and > in the XML escaping helper \u2014 not ' or \".",
-      "rationale": "Single quotes and double quotes are only special inside attribute values in XML. Escaping them in element content is unnecessary and makes the raw text harder to read. Using the minimal correct set avoids spurious entity encoding in the feed body."
+      "decision": "Relative time formatting uses Intl.RelativeTimeFormat (built-in) rather than date-fns.",
+      "rationale": "date-fns is not in package.json. Adding it would be a new dependency requiring a deferred-question raise per the SWE persona rules. Intl.RelativeTimeFormat is available in Node 12+ and all modern browsers, covering all the relative time units needed."
     },
     {
-      "decision": "Use @jest-environment node for the Route Handler test file.",
-      "rationale": "The Web API Response global is available in Node.js v18+ but not exposed by jest-environment-jsdom. Since the route handler is server-side code (not a browser component), the node test environment is the correct choice and avoids a polyfill dependency."
+      "decision": "app/changelog/page.tsx sorts entries at render time rather than relying on the JSON file order.",
+      "rationale": "Defensive programming: the page guarantee is newest-first regardless of authoring order in the data file. This also makes the sort intent explicit in code."
     },
     {
-      "decision": "Use native Web API Response (not NextResponse) in the route handler.",
-      "rationale": "Next.js App Router Route Handlers support the standard Web API Response. Using it avoids importing from next/server and keeps the handler self-contained and easily testable without the Next.js runtime."
+      "decision": "ChangelogList uses role='feed' (ARIA feed pattern) instead of a plain section.",
+      "rationale": "The linter applied this improvement. role=feed is the ARIA landmark for a list of dynamically updating articles, which is semantically correct for a changelog."
     }
   ],
   "deferred_questions": [],
@@ -23,41 +23,85 @@
   "files_changed": [
     {
       "change_kind": "new",
-      "path": "data/changelog.json",
-      "summary": "Seed data for the changelog: four entries (Custom 404 Page, Back-to-Top Control, Dark Mode Toggle, Footer) in descending chronological order, each with an ISO 8601 timestamp."
+      "path": "components/ui/Tooltip.tsx",
+      "summary": "CSS-only accessible tooltip using Tailwind group/group-hover:. Uses useId() for aria-describedby linkage and role=\"tooltip\" for screen readers. Zinc-palette with dark: class variants."
     },
     {
       "change_kind": "new",
-      "path": "app/changelog.xml/route.ts",
-      "summary": "Next.js Route Handler at /changelog.xml. Reads changelog.json and returns a valid RSS 2.0 feed with application/xml Content-Type and ISO 8601 pubDate timestamps."
+      "path": "components/changelog/ChangelogEntry.tsx",
+      "summary": "Renders one changelog entry: title (h2), description (p), and a relative timestamp via Intl.RelativeTimeFormat wrapped in Tooltip showing the absolute date on hover. All zinc-based with dark: variants."
     },
     {
       "change_kind": "new",
-      "path": "__tests__/changelog-data.test.ts",
-      "summary": "Tests for data/changelog.json: array shape, 4 entries, valid ISO 8601 dates, descending order, and presence of all four seed entry titles."
+      "path": "components/changelog/ChangelogList.tsx",
+      "summary": "Container that renders a role=feed of ChangelogEntry components. Sorting responsibility is delegated to the caller (page.tsx)."
     },
     {
       "change_kind": "new",
-      "path": "__tests__/changelog-xml-route.test.ts",
-      "summary": "Tests for the /changelog.xml Route Handler: HTTP 200, application/xml Content-Type, valid RSS 2.0 structure, all entry titles/descriptions, ISO 8601 timestamps, and item count."
+      "path": "app/changelog/page.tsx",
+      "summary": "Next.js server page at /changelog. Sorts changelog.json entries newest-first and renders via ChangelogList. Mirrors homepage zinc-50/bg-white outer-inner layout. Statically pre-rendered at build time."
     }
   ],
   "pr_ref": "stub://pr/d12431a4-41f4-4579-80e5-24edf4f3c6d8",
   "schema_version": 1,
   "self_assessment": {
     "all_acs_have_tests": true,
-    "all_must_addressed": false,
+    "all_must_addressed": true,
     "constraints_honoured": true,
-    "notes": "This task covers only AC3 (the data file and RSS feed). AC1, AC2, and AC4 are deferred to a separate task that will implement the /changelog page components (ChangelogList, ChangelogEntry, Tooltip). All repo checks (jest, eslint, tsc --noEmit) pass with 49 tests across 6 suites."
+    "notes": "AC1 (changelog page, newest-first), AC2 (tooltip on hover), and AC4 (dark mode) are all covered. AC3 (RSS feed) was implemented by T1 and is not in scope for this task. All styling is strictly Tailwind-based using zinc tokens with dark: variants. No new dependencies were added. Build, lint, and all 87 tests pass (49 pre-existing + 38 new)."
   },
   "tests_added": [
     {
-      "covers_acceptance_criterion": "AC3",
-      "path": "__tests__/changelog-data.test.ts"
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/Tooltip.test.tsx"
     },
     {
-      "covers_acceptance_criterion": "AC3",
-      "path": "__tests__/changelog-xml-route.test.ts"
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/Tooltip.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/ui/Tooltip.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/ui/Tooltip.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/ChangelogList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/ChangelogList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/ChangelogList.test.tsx"
     }
   ]
 }
