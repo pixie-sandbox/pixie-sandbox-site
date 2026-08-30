@@ -1,0 +1,178 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "A user navigates to /changelog",
+      "id": "AC1",
+      "then": "they see a list of site updates ordered by newest first, matching the site's design system.",
+      "when": "the page loads"
+    },
+    {
+      "given": "An entry has a relative date (e.g., '5 minutes ago')",
+      "id": "AC2",
+      "then": "a styled UI tooltip appears showing the exact timestamp.",
+      "when": "the user hovers over the date"
+    },
+    {
+      "given": "A user or feed reader accesses /changelog.xml",
+      "id": "AC3",
+      "then": "it contains the correct entry titles, descriptions, and standard ISO 8601 timestamps.",
+      "when": "the XML is parsed"
+    },
+    {
+      "given": "The site is in dark mode",
+      "id": "AC4",
+      "then": "the colors and typography match the existing dark mode theme tokens.",
+      "when": "the user views the /changelog page"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The 'styled UI component' for tooltips will follow the existing design system's patterns for popovers or tooltips if they exist, otherwise a new accessible component will be created.",
+      "confidence": "medium"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "A new /changelog page and /changelog.xml RSS feed for the sandbox site. The page will list site updates in reverse chronological order, using a local data file for content. Each entry consists of a title, a single block of descriptive text, and a relative timestamp (e.g., '3 days ago') that reveals the full date via a styled UI tooltip on hover. The RSS feed will use standard RFC 822/ISO 8601 timestamps. The UI will match the existing site's zinc-based theme and support both light and dark modes.",
+  "constraints": [
+    {
+      "detail": "Styling must be strictly Tailwind-based to match existing patterns.",
+      "kind": "other"
+    },
+    {
+      "detail": "Data must be managed via a local file to maintain the sandbox's simplicity.",
+      "kind": "other"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "d12431a4-41f4-4579-80e5-24edf4f3c6d8",
+  "flows": [],
+  "must": [
+    "Create a new route at /changelog.",
+    "Generate an RSS feed at /changelog.xml.",
+    "Source all content from a local data file (no external CMS or DB).",
+    "List entries in descending chronological order (newest first).",
+    "Include a title, description, and date for every entry.",
+    "Display relative time (e.g., '2 days ago') on the page.",
+    "Show the exact timestamp via a styled UI tooltip component on hover.",
+    "Seed the data with: Footer, Dark Mode Toggle, Back-to-Top Control, and Custom 404 Page.",
+    "Ensure full support for light and dark modes using existing theme tokens."
+  ],
+  "open_questions": [],
+  "outcome": "Visitors can view a history of site updates on a dedicated page and subscribe to updates via an RSS feed.",
+  "rationale": "The feature aims to provide visibility into site progress while keeping the stack simple (local file). Using relative dates improves scannability, while the styled tooltip provides precision. The RSS feed extends the utility for power users.",
+  "risks": [
+    {
+      "mitigation": "Ensure relative time calculation handles server vs client time correctly, or use a client-side component for the date display.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Hydration mismatch on dates"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [
+      "Page views on /changelog"
+    ],
+    "stages": [
+      "Development",
+      "UAT",
+      "Production canary",
+      "Full release"
+    ]
+  },
+  "schema_version": 2,
+  "should": [
+    "Ensure the RSS feed uses standard RFC 822/ISO 8601 timestamps for compatibility."
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "Updates are sorted by date.",
+        "Each update has a clear title and description."
+      ],
+      "references": [],
+      "role": "Visitor",
+      "so_that": "I can stay informed about the sandbox's evolution.",
+      "want": "to see a list of recent updates"
+    },
+    {
+      "criteria": [
+        "The feed is available at /changelog.xml.",
+        "The feed contains valid XML and standard timestamps."
+      ],
+      "references": [],
+      "role": "Subscriber",
+      "so_that": "I don't have to manually check the site for updates.",
+      "want": "an RSS feed of the changelog"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Understand what new features have been added to the sandbox.",
+        "Check when specific improvements were released."
+      ],
+      "name": "Site Visitor",
+      "pain_points": [
+        "Uncertainty about the current state of the sandbox site."
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": "A history of what's been shipped to the sandbox",
+            "text": "Site Changelog",
+            "type": "header"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "Added support for light and dark mode using theme tokens.",
+                "type": "text"
+              },
+              {
+                "emphasis": "muted",
+                "text": "3 days ago",
+                "type": "text"
+              }
+            ],
+            "title": "Dark Mode Toggle Implementation",
+            "type": "card"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "A branded error page for missing routes.",
+                "type": "text"
+              },
+              {
+                "emphasis": "muted",
+                "text": "1 week ago",
+                "type": "text"
+              }
+            ],
+            "title": "Custom 404 Page",
+            "type": "card"
+          }
+        ],
+        "title": "Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Changelog Page"
+    }
+  ],
+  "wont": [
+    "Implement a CMS or database for managing entries.",
+    "Support complex entry structures like nested bulleted lists."
+  ]
+}
