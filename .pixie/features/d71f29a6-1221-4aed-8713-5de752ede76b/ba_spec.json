@@ -1,0 +1,120 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "A visitor is viewing the changelog page",
+      "id": "AC1",
+      "then": "the clipboard contains a URL ending in '#new-feature-released'",
+      "when": "they click the copy button next to an entry titled 'New Feature Released!'"
+    },
+    {
+      "given": "A visitor has clicked the copy button",
+      "id": "AC2",
+      "then": "the button label displays 'Copied' and reverts after approximately 2 seconds",
+      "when": "the copy action is successful"
+    },
+    {
+      "given": "A screen reader user is navigating the changelog",
+      "id": "AC3",
+      "then": "the button provides a clear, accessible description of its purpose",
+      "when": "they focus on the copy button"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The button will use a generic icon or a short text label as its default state to remain 'small'.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [
+    {
+      "items": [
+        "Update ChangelogList/Entry component to include the button",
+        "Implement slugify logic",
+        "Implement local state for the 'Copied' label"
+      ],
+      "size": "small",
+      "title": "UI Implementation"
+    },
+    {
+      "items": [
+        "Unit test for slugify utility",
+        "Integration test for clipboard interaction and label timing"
+      ],
+      "size": "small",
+      "title": "Testing"
+    }
+  ],
+  "clarified_description": "Adds a 'copy permalink' capability to each entry on the changelog page. Users can click a small, muted button located inline after the entry title to copy a URL containing a slugified anchor ID to their clipboard. The button provides immediate feedback by temporarily changing its label to 'Copied'.",
+  "constraints": [
+    {
+      "detail": "Must not introduce new external dependencies for the confirmation UI.",
+      "kind": "other"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "d71f29a6-1221-4aed-8713-5de752ede76b",
+  "flows": [],
+  "must": [
+    "The system shall provide a button inline after the title of each changelog entry.",
+    "The system shall generate a slugified anchor ID from the entry title using lowercase letters and hyphens.",
+    "WHEN the copy button is clicked, the system shall copy the current page URL appended with the entry's anchor ID to the clipboard.",
+    "WHEN the copy button is clicked, the system shall change the button label to 'Copied' for approximately two seconds.",
+    "The system shall revert the button label to its original state (e.g., an icon or 'Link') after the two-second duration.",
+    "The system shall provide an accessible name for the copy button (e.g., via aria-label).",
+    "The system shall not modify the contents of `data/changelog.json` or the `/changelog.xml` route."
+  ],
+  "open_questions": [],
+  "outcome": "Users can share direct links to specific changelog updates via a single click.",
+  "rationale": "The requirement for 'no new dependency' and 'no toast' dictates a local component state change for the button label. Using slugified titles for anchors is a standard way to provide deep-linking without requiring a database schema change for IDs.",
+  "risks": [
+    {
+      "mitigation": "If two entries have identical titles, they will share an anchor; however, for a changelog, chronological order usually prevents user confusion.",
+      "reference": null,
+      "severity": "low",
+      "title": "Slug collision"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [],
+    "stages": [
+      "Development",
+      "UAT",
+      "Production canary",
+      "Full release"
+    ]
+  },
+  "schema_version": 2,
+  "should": [
+    "The system shall use a muted visual style for the button to avoid distracting from the primary content."
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "Link includes a valid anchor ID",
+        "Confirmation is visible on the button itself"
+      ],
+      "references": [],
+      "role": "User",
+      "so_that": "I can send a teammate directly to the relevant update",
+      "want": "a way to copy a link to a specific entry"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Share a specific update with a teammate or customer"
+      ],
+      "name": "Changelog Reader",
+      "pain_points": [
+        "Having to manually scroll and highlight a URL to point someone to a specific change"
+      ]
+    }
+  ],
+  "wireframes": [],
+  "wont": [
+    "The system won't use toast notifications or external notification libraries for confirmation.",
+    "The system won't modify the underlying changelog data structure."
+  ]
+}

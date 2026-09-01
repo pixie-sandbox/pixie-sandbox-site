@@ -1,5 +1,7 @@
+import CopyButton from '@/components/ui/CopyButton';
 import Tooltip from '@/components/ui/Tooltip';
 import { calculateReadingTime } from '@/lib/readingTime';
+import { slugify } from '@/lib/slugify';
 
 export type ChangelogEntryData = {
   title: string;
@@ -60,14 +62,16 @@ export default function ChangelogEntry({ entry }: ChangelogEntryProps) {
   const relativeTime = formatRelativeTime(entry.date);
   const absoluteDate = formatAbsoluteDate(entry.date);
   const readingTime = calculateReadingTime(entry.description);
+  const slug = slugify(entry.title);
 
   return (
     <article className="py-6 border-b border-black/[.08] dark:border-white/[.145] last:border-0">
       <header className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
         <div className="flex items-baseline gap-1.5">
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 id={slug} className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
             {entry.title}
           </h2>
+          <CopyButton slug={slug} />
           <span className="text-sm text-zinc-500 dark:text-zinc-400">
             {'•'} {readingTime}
           </span>
