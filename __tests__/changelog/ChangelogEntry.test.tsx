@@ -69,3 +69,75 @@ describe("ChangelogEntry", () => {
     expect(description.className).toMatch(/dark:text-zinc/);
   });
 });
+
+// ── Reading time rendering ─────────────────────────────────────────────────
+
+/**
+ * Builds a description string with exactly `n` words.
+ */
+function makeDescription(wordCount: number): string {
+  return Array.from({ length: wordCount }, (_, i) => `word${i + 1}`).join(' ');
+}
+
+const baseEntry = {
+  title: "Test Entry",
+  date: "2026-08-20T00:00:00.000Z",
+};
+
+describe("ChangelogEntry — reading time", () => {
+  it("AC1: renders '3 min read' for a 450-word description", () => {
+    render(
+      <ChangelogEntry entry={{ ...baseEntry, description: makeDescription(450) }} />
+    );
+    expect(screen.getByText(/3 min read/)).toBeInTheDocument();
+  });
+
+  it("AC2: renders '1 min read' for a 10-word description", () => {
+    render(
+      <ChangelogEntry entry={{ ...baseEntry, description: makeDescription(10) }} />
+    );
+    expect(screen.getByText(/1 min read/)).toBeInTheDocument();
+  });
+
+  it("AC3: renders '1 min read' for an empty description", () => {
+    render(<ChangelogEntry entry={{ ...baseEntry, description: "" }} />);
+    expect(screen.getByText(/1 min read/)).toBeInTheDocument();
+  });
+
+  it("AC4: reading time span uses 'text-sm' and muted zinc color classes", () => {
+    const { container } = render(
+      <ChangelogEntry entry={{ ...baseEntry, description: makeDescription(10) }} />
+    );
+    // The reading time is rendered inside a <span> next to the title
+    const spans = container.querySelectorAll("span");
+    const readingTimeSpan = Array.from(spans).find((s) =>
+      s.textContent?.includes("min read")
+    );
+    expect(readingTimeSpan).toBeTruthy();
+    expect(readingTimeSpan?.className).toContain("text-sm");
+    expect(readingTimeSpan?.className).toMatch(/text-zinc-\d+/);
+  });
+
+  it("renders a bullet separator (•) between title and reading time", () => {
+    const { container } = render(
+      <ChangelogEntry entry={{ ...baseEntry, description: makeDescription(10) }} />
+    );
+    const spans = container.querySelectorAll("span");
+    const readingTimeSpan = Array.from(spans).find((s) =>
+      s.textContent?.includes("min read")
+    );
+    expect(readingTimeSpan?.textContent).toContain("•");
+  });
+
+  it("renders reading time on the same line as the title (same flex container)", () => {
+    const { container } = render(
+      <ChangelogEntry entry={{ ...baseEntry, description: makeDescription(10) }} />
+    );
+    const heading = container.querySelector("h2");
+    const readingTimeSpan = Array.from(
+      container.querySelectorAll("span")
+    ).find((s) => s.textContent?.includes("min read"));
+    // Both the heading and reading time span share the same parent element
+    expect(heading?.parentElement).toBe(readingTimeSpan?.parentElement);
+  });
+});
