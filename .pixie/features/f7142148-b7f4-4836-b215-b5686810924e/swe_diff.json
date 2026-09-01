@@ -1,0 +1,79 @@
+{
+  "branch": "pixie/f7142148-b7f4-4836-b215-b5686810924e",
+  "decisions_log": [
+    {
+      "decision": "calculateReadingTime always returns a string, never null \u2014 even for 0 or 10 words.",
+      "rationale": "AC2 and AC3 both require '1 min read' to be displayed for 10 and 0 words respectively, overriding the 'should: only display if > 10 words' clause. The pre-written tests confirm this behaviour."
+    },
+    {
+      "decision": "Used text-sm text-zinc-500 dark:text-zinc-400 for the reading time span.",
+      "rationale": "These zinc utility classes are already used by the date <time> element and the description <p> in the same component, making them the natural choice for 'small and muted' styling consistent with the codebase palette."
+    },
+    {
+      "decision": "Reading time is rendered inside the <h2> as an inline <span>, not as a sibling element.",
+      "rationale": "Placing it inside the h2 keeps title and reading time on the same flex baseline without adding extra layout elements, matching the sketch's 'same line as the entry title' requirement."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "f7142148-b7f4-4836-b215-b5686810924e",
+  "files_changed": [
+    {
+      "change_kind": "new",
+      "path": "lib/readingTime.ts",
+      "summary": "Implements calculateReadingTime(description): splits on /\\s+/, divides by 200, Math.ceil, minimum 1 \u2014 always returns a formatted string like '1 min read'."
+    },
+    {
+      "change_kind": "modify",
+      "path": "components/changelog/ChangelogEntry.tsx",
+      "summary": "Imports calculateReadingTime and renders the result next to the entry title inside a <span> with '\u2022' separator and text-sm text-zinc-500 dark:text-zinc-400 styling."
+    },
+    {
+      "change_kind": "new",
+      "path": "__tests__/lib/readingTime.test.ts",
+      "summary": "Unit tests for calculateReadingTime covering empty string, whitespace-only, 10-word, 11-word, 200-word, 201-word, and 450-word cases."
+    },
+    {
+      "change_kind": "modify",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx",
+      "summary": "Added a 'ChangelogEntry \u2014 reading time' describe block with component-level tests verifying '3 min read' for 450 words, '1 min read' for 10 and 0 words, bullet separator, and text-sm/zinc class styling."
+    }
+  ],
+  "pr_ref": "stub://pr/f7142148-b7f4-4836-b215-b5686810924e",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All repo checks pass: lint (no errors), tsc --noEmit (clean), next build (compiled successfully), jest (107/107 tests passing across 14 suites). data/changelog.json and app/changelog.xml/route.ts were not modified."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/lib/readingTime.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/lib/readingTime.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/lib/readingTime.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/changelog/ChangelogEntry.test.tsx"
+    }
+  ]
+}
