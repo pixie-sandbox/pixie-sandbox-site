@@ -1,0 +1,65 @@
+{
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart LR\n  E[ChangelogEntry.tsx] --> H[\"calculateReadingTime (new helper)\"]\n  E --> R[\"Reading Time UI (new)\"]\n  \n  subgraph \"Changelog Entry Logic\"\n    H\n    R\n  end",
+    "title": "Changelog Entry Reading Time Integration"
+  },
+  "components_touched": [
+    {
+      "change_kind": "modify",
+      "name": "ChangelogEntry component",
+      "summary": "Update the UI to include the reading time estimate next to the entry title."
+    },
+    {
+      "change_kind": "new",
+      "name": "Reading time helper",
+      "summary": "A utility function to calculate reading time based on word count (200 WPM) and handle rounding/minimums."
+    },
+    {
+      "change_kind": "new",
+      "name": "ChangelogEntry tests",
+      "summary": "Add unit tests for the reading time calculation logic and component rendering."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Exact Tailwind color utility (e.g., `text-muted-foreground` vs `text-zinc-500`) to be decided by SWE based on existing codebase patterns."
+  ],
+  "feature_id": "f7142148-b7f4-4836-b215-b5686810924e",
+  "rationale": "The goal is to add a non-intrusive UI enhancement to the changelog. I have designed a simple logic flow where the existing entry component consumes a new utility function. \n\n### Logic Requirements\n1. **Input**: Entry description string.\n2. **Processing**: Split by whitespace, count words, divide by 200, `Math.ceil()`.\n3. **Minimum**: If result < 1, return '1 min read'.\n4. **Visibility**: If word count <= 10, return null/empty (per 'should' requirement).\n5. **Output**: String format 'X min read'.\n\n### UI Implementation\n- Placement: Next to the title on the same line.\n- Separator: ` \u2022 `.\n- Styling: Small and muted (e.g., `text-sm text-muted-foreground`).\n\n### Testing Strategy\n- Unit test the helper with: 0 words, 10 words, 11 words, 450 words, and empty strings.\n- Component test ensures the string appears correctly in the DOM with the correct separator.\n\n## Memory writes\n- FACTUAL: Reading time is calculated client-side at 200 WPM.\n- CONSTRAINT: Reading time is only shown if description > 10 words.\n- DECISION: Reading time is separated from the title by a middle dot (\u2022) and styled as small/muted text.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Use a robust regex-based word count split (e.g., /\\s+/) and verify with edge-case tests.",
+      "risk": "Incorrect word count logic (e.g., handling of whitespace/punctuation)"
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Use existing design system utility classes for 'small' and 'muted' styles and ensure inline-block/flex layout doesn't break the title.",
+      "risk": "Visual regression in title layout"
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Calculation is a simple O(n) string split on the client; negligible for typical changelog lengths.",
+      "risk": "Performance impact on large changelogs"
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Strictly implement the 'should' constraint: only display if description > 10 words.",
+      "risk": "Reading time shown for very short descriptions"
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "The SWE should use existing Tailwind text-muted/zinc classes found in the codebase.",
+      "risk": "Incorrectness of 'muted' color"
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Do not modify `data/changelog.json` or `app/changelog.xml/route.ts`.",
+    "Implement calculation logic in a testable helper function.",
+    "Use only client-side components for logic and rendering.",
+    "Ensure reading time is separated by a middle dot (\u2022)."
+  ]
+}

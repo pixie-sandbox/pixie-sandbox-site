@@ -1,4 +1,5 @@
 import Tooltip from '@/components/ui/Tooltip';
+import { calculateReadingTime } from '@/lib/readingTime';
 
 export type ChangelogEntryData = {
   title: string;
@@ -58,13 +59,19 @@ interface ChangelogEntryProps {
 export default function ChangelogEntry({ entry }: ChangelogEntryProps) {
   const relativeTime = formatRelativeTime(entry.date);
   const absoluteDate = formatAbsoluteDate(entry.date);
+  const readingTime = calculateReadingTime(entry.description);
 
   return (
     <article className="py-6 border-b border-black/[.08] dark:border-white/[.145] last:border-0">
       <header className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-          {entry.title}
-        </h2>
+        <div className="flex items-baseline gap-1.5">
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+            {entry.title}
+          </h2>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            {'•'} {readingTime}
+          </span>
+        </div>
         <Tooltip content={absoluteDate}>
           <time
             dateTime={entry.date}
