@@ -9,6 +9,24 @@ describe("Footer", () => {
     expect(screen.getByText(new RegExp(currentYear))).toBeInTheDocument();
   });
 
+  it("AC2: year is dynamic — reflects the runtime year, not a hardcoded value", () => {
+    const MOCK_YEAR = 2099;
+    const RealDate = Date;
+    jest.spyOn(global, "Date").mockImplementation(((...args: unknown[]) => {
+      if (args.length === 0) {
+        const d = new RealDate();
+        d.getFullYear = () => MOCK_YEAR;
+        return d;
+      }
+      return new RealDate(...(args as ConstructorParameters<typeof Date>));
+    }) as unknown as typeof Date);
+
+    render(<Footer />);
+    expect(screen.getByText(new RegExp(String(MOCK_YEAR)))).toBeInTheDocument();
+
+    jest.restoreAllMocks();
+  });
+
   it("AC1: renders a link to the GitHub repository", () => {
     render(<Footer />);
     const link = screen.getByRole("link", { name: /github/i });
