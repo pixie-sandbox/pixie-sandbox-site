@@ -21,7 +21,7 @@ export default function ChangelogPage() {
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col py-16 px-16 bg-white dark:bg-black">
         <header className="mb-10">
-          <h1 className="text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+          <h1 id="changelog-heading" className="text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
             Changelog
           </h1>
           <p className="mt-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">
@@ -32,6 +32,14 @@ export default function ChangelogPage() {
           </p>
         </header>
         <ChangelogList entries={entries} />
+        <div className="text-right mt-8">
+          <a
+            href="#changelog-heading"
+            className="text-zinc-500 dark:text-zinc-400"
+          >
+            Back to top
+          </a>
+        </div>
       </main>
     </div>
   );
