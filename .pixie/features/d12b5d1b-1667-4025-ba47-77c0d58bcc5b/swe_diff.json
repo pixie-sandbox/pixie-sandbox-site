@@ -1,0 +1,44 @@
+{
+  "branch": "pixie/d12b5d1b-1667-4025-ba47-77c0d58bcc5b",
+  "decisions_log": [
+    {
+      "decision": "The entry count paragraph is inserted between the <h1> and the existing description paragraph, matching 'directly below the page heading'.",
+      "rationale": "The task specifies the count appears directly below the <h1>; inserting it before the existing description is the most literal interpretation and the most natural visual hierarchy."
+    },
+    {
+      "decision": "Used jest.mock factory returning a static [] then jest.requireMock() to obtain and mutate the shared array reference in each test, rather than jest.resetModules() + dynamic import.",
+      "rationale": "jest.resetModules() causes a duplicate React instance which breaks useState hooks. Mutating the mock array in-place avoids module reloading while still allowing per-test data control."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "d12b5d1b-1667-4025-ba47-77c0d58bcc5b",
+  "files_changed": [
+    {
+      "change_kind": "modify",
+      "path": "app/changelog/page.tsx",
+      "summary": "Added a <p> element directly below the <h1> that renders the count of changelog entries with correct singular/plural grammar ('1 entry' vs '{n} entries'), styled with text-zinc-600 dark:text-zinc-400."
+    }
+  ],
+  "pr_ref": "stub://pr/d12b5d1b-1667-4025-ba47-77c0d58bcc5b",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All repo checks pass: lint (eslint, 0 errors), test (129/129), build (Next.js static export succeeds). Only app/changelog/page.tsx was modified (plus the new test file). Zinc theme tokens and dark mode variant are applied consistently with existing styles."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx"
+    }
+  ]
+}
