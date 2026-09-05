@@ -25,6 +25,9 @@ export default function ChangelogPage() {
             Changelog
           </h1>
           <p className="mt-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">
+            {entries.length === 1 ? "1 entry" : `${entries.length} entries`}
+          </p>
+          <p className="mt-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">
             A record of updates to this site.
           </p>
         </header>

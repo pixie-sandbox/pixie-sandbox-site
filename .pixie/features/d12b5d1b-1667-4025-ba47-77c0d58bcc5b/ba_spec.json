@@ -1,0 +1,117 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "the changelog.json file contains 42 entries",
+      "id": "AC1",
+      "then": "the system displays '42 entries' in muted text directly under the page heading",
+      "when": "a user visits the changelog page"
+    },
+    {
+      "given": "the changelog.json file contains 1 entry",
+      "id": "AC2",
+      "then": "the system displays '1 entry' in muted text directly under the page heading",
+      "when": "a user visits the changelog page"
+    },
+    {
+      "given": "the changelog.json file contains 0 entries",
+      "id": "AC3",
+      "then": "the system displays '0 entries' in muted text directly under the page heading",
+      "when": "a user visits the changelog page"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The 'muted' styling follows the existing design system's muted/secondary text color.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "The Pixie sandbox changelog page will display the total count of all entries found in the `changelog.json` data source. This count will appear directly beneath the main page heading, styled with muted text, and will use correct singular/plural grammar (e.g., '1 entry' vs '42 entries').",
+  "constraints": [
+    {
+      "detail": "The count is derived from the static `data/changelog.json` file used by the site.",
+      "kind": "other"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "d12b5d1b-1667-4025-ba47-77c0d58bcc5b",
+  "flows": [],
+  "must": [
+    "The system shall display the total count of entries from `changelog.json` on the changelog page.",
+    "WHEN the total count is 1, the system shall display the text as '{count} entry'.",
+    "WHEN the total count is not 1, the system shall display the text as '{count} entries'.",
+    "The system shall display the entry count directly below the page heading.",
+    "The system shall apply muted styling to the entry count text."
+  ],
+  "open_questions": [],
+  "outcome": "Users can see the total number of changelog entries at a glance on the changelog page.",
+  "rationale": "The feature provides immediate context to the user regarding the depth of the changelog history. By placing it under the heading and using muted styling, it remains informative without competing for visual priority with the actual changelog entries.",
+  "risks": [],
+  "rollout": null,
+  "schema_version": 2,
+  "should": [],
+  "user_stories": [
+    {
+      "criteria": [
+        "The count is accurate to the json source",
+        "The grammar handles singular/plural correctly"
+      ],
+      "references": [],
+      "role": "Sandbox Site Visitor",
+      "so_that": "I can immediately know how much history is documented",
+      "want": "to see a total count of changelog entries"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Understand the scope of historical changes available on the site"
+      ],
+      "name": "Sandbox Site Visitor",
+      "pain_points": [
+        "Uncertainty about how many updates have been recorded"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": null,
+            "text": "Changelog",
+            "type": "header"
+          },
+          {
+            "emphasis": "muted",
+            "text": "42 entries",
+            "type": "text"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "New feature released...",
+                "type": "text"
+              }
+            ],
+            "title": "Latest Update",
+            "type": "card"
+          }
+        ],
+        "title": "Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Changelog Page Header"
+    }
+  ],
+  "wont": [
+    "The system won't apply any time-based filters to the count.",
+    "The system won't include entries that are not present in `changelog.json`."
+  ]
+}
