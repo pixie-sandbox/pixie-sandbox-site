@@ -29,6 +29,47 @@ function setEntries(n: number): void {
 
 afterEach(cleanup);
 
+describe("ChangelogPage — Back to top link (AC1, AC2)", () => {
+  it("AC1: renders a right-aligned 'Back to top' link in muted text", () => {
+    setEntries(3);
+    render(<ChangelogPage />);
+
+    const link = screen.getByRole("link", { name: /back to top/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "#changelog-heading");
+    expect(link.className).toMatch(/text-zinc-500/);
+    expect(link.className).toMatch(/dark:text-zinc-400/);
+
+    // The wrapping div must have text-right for right-alignment.
+    const wrapper = link.parentElement!;
+    expect(wrapper.className).toMatch(/text-right/);
+  });
+
+  it("AC2: the link href targets the H1 with id='changelog-heading'", () => {
+    setEntries(1);
+    render(<ChangelogPage />);
+
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading).toHaveAttribute("id", "changelog-heading");
+
+    const link = screen.getByRole("link", { name: /back to top/i });
+    expect(link).toHaveAttribute("href", "#changelog-heading");
+  });
+
+  it("AC2: the 'Back to top' link appears after the changelog list in DOM order", () => {
+    setEntries(2);
+    render(<ChangelogPage />);
+
+    const link = screen.getByRole("link", { name: /back to top/i });
+    const heading = screen.getByRole("heading", { level: 1 });
+
+    // The link must come after the heading in document order.
+    expect(
+      heading.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+});
+
 describe("ChangelogPage — entry count display", () => {
   it("AC1: shows '{n} entries' (plural) when there are 42 entries", () => {
     setEntries(42);

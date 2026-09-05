@@ -1,0 +1,54 @@
+{
+  "branch": "pixie/8a9acc48-c5fc-49e3-88fc-26eac72854e3",
+  "decisions_log": [
+    {
+      "decision": "Used CSS scroll-behavior: smooth on :root rather than a JS onClick handler to satisfy the smooth-scroll requirement.",
+      "rationale": "The sketch explicitly prefers the lowest-impact path (standard anchor + CSS). Adding scroll-behavior to globals.css achieves smooth scroll without any client-side JS, keeping the page component a pure Server Component."
+    },
+    {
+      "decision": "Link wrapped in a <div className=\"text-right mt-8\"> rather than using flex/self-end directly on the anchor.",
+      "rationale": "The parent <main> uses flex-col. text-right on a block wrapper is the simplest idiomatic Tailwind approach to right-align inline content without restructuring the flex container. mt-8 gives visual separation from the list."
+    },
+    {
+      "decision": "The inline link is distinct from the existing components/BackToTop.tsx scroll-triggered button \u2014 both coexist without conflict.",
+      "rationale": "components/BackToTop.tsx is a floating scroll-triggered button rendered in the Footer. The new anchor is a static inline element in the changelog page flow. They serve different UX patterns on different pages."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "8a9acc48-c5fc-49e3-88fc-26eac72854e3",
+  "files_changed": [
+    {
+      "change_kind": "modify",
+      "path": "app/changelog/page.tsx",
+      "summary": "Added id=\"changelog-heading\" to the <h1>; added right-aligned <a href=\"#changelog-heading\"> link with text 'Back to top' and muted zinc-500/dark:zinc-400 styling immediately after <ChangelogList />."
+    },
+    {
+      "change_kind": "modify",
+      "path": "app/globals.css",
+      "summary": "Added scroll-behavior: smooth to :root so anchor navigation triggers smooth scrolling without a JS click handler."
+    },
+    {
+      "change_kind": "modify",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx",
+      "summary": "Extended existing ChangelogPage test file with a new describe block covering AC1 (link present, right-aligned, muted styling) and AC2 (h1 has correct id, link href targets heading, link follows heading in DOM order)."
+    }
+  ],
+  "pr_ref": "stub://pr/8a9acc48-c5fc-49e3-88fc-26eac72854e3",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 132 tests pass (npm test). Lint clean (npm run lint). Build succeeds (npm run build). No new component file created \u2014 link is inline in app/changelog/page.tsx as required by SWE constraints. The link is right-aligned, uses muted zinc styling, follows the ChangelogList, and targets the h1 with id='changelog-heading'."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx"
+    }
+  ]
+}

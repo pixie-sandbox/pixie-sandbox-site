@@ -1,0 +1,125 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "the user is on the changelog page",
+      "id": "AC1",
+      "then": "they see a right-aligned 'Back to top' link in muted text",
+      "when": "they scroll to the bottom of the list"
+    },
+    {
+      "given": "the 'Back to top' link is visible",
+      "id": "AC2",
+      "then": "the viewport smoothly scrolls to the top of the page heading",
+      "when": "the user clicks the link"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The 'heading' refers to the top-most H1 or title element of the changelog page.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The link should be part of the main changelog content flow rather than the global site footer, as it is requested 'under the last entry'.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Add a plain text 'Back to top' link at the bottom of the changelog page. The link should be right-aligned, positioned immediately following the last changelog entry, and use muted styling. Clicking the link will trigger a smooth scroll to the top of the page heading.",
+  "constraints": [
+    {
+      "detail": "The link must reside within the page flow (not fixed/floating) to comply with existing architectural patterns.",
+      "kind": "other"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "8a9acc48-c5fc-49e3-88fc-26eac72854e3",
+  "flows": [],
+  "must": [
+    "The system shall render a 'Back to top' link on the changelog page.",
+    "The system shall display the link text exactly as 'Back to top'.",
+    "The system shall position the link immediately after the last `ChangelogEntry` component.",
+    "The system shall right-align the link within the changelog container.",
+    "WHEN the link is clicked, the system shall perform a smooth scroll to the top of the page heading."
+  ],
+  "open_questions": [],
+  "outcome": "Users can quickly return to the top of the changelog page via a text link located at the end of the entry list.",
+  "rationale": "The user requested a specific, lightweight navigation aid for the changelog. By placing it specifically under the last entry rather than in the global footer, we provide context-specific utility. Using muted styling and no icons follows the existing design language seen in `ChangelogEntry.tsx`.",
+  "risks": [],
+  "rollout": null,
+  "schema_version": 2,
+  "should": [
+    "The system shall apply muted text styling to the link (e.g., using `text-zinc-500` or `dark:text-zinc-400` to match existing changelog patterns)."
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "Link is text-only",
+        "Link is right-aligned",
+        "Scroll is smooth"
+      ],
+      "references": [],
+      "role": "Sandbox Site Visitor",
+      "so_that": "I can quickly jump back to the top without excessive manual scrolling",
+      "want": "a 'Back to top' link at the end of the changelog"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Read through historical changelog entries",
+        "Navigate back to the top of the page to access other navigation elements"
+      ],
+      "name": "Sandbox Site Visitor",
+      "pain_points": [
+        "Manual scrolling required after reading long lists of entries"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "Entry 1: Feature A added...",
+                "type": "text"
+              },
+              {
+                "emphasis": "normal",
+                "text": "Entry 2: Bug B fixed...",
+                "type": "text"
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "children": [
+                  {
+                    "style": "link",
+                    "text": "Back to top",
+                    "type": "button"
+                  }
+                ],
+                "title": null,
+                "type": "card"
+              }
+            ],
+            "title": "Recent Updates",
+            "type": "card"
+          }
+        ],
+        "title": "Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Changelog Page Bottom"
+    }
+  ],
+  "wont": [
+    "The system shall not use an icon for this link.",
+    "The system shall not use a floating or fixed position for the link."
+  ]
+}
