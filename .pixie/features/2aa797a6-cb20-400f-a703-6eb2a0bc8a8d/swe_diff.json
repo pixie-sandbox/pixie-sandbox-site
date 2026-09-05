@@ -1,0 +1,63 @@
+{
+  "branch": "pixie/2aa797a6-cb20-400f-a703-6eb2a0bc8a8d",
+  "decisions_log": [
+    {
+      "decision": "Used three separate test files (one per AC), each with its own top-level jest.mock for @/data/changelog.json.",
+      "rationale": "jest.isolateModules causes a dual-React-instance error (two copies of react in the same process) because the module's fresh React diverges from the one held by @testing-library/react. Separate files with static top-level mocks avoid this entirely and produce the cleanest, most readable tests."
+    },
+    {
+      "decision": "Count is derived from changelog.length (the raw imported array) rather than entries.length (the sorted copy).",
+      "rationale": "The sorted copy is identical in length; using the raw import makes the intent explicit \u2014 we are counting all entries in the data file, not a filtered or sorted subset."
+    },
+    {
+      "decision": "Applied mt-1 text-sm spacing to the count paragraph (vs mt-2 text-base on the description).",
+      "rationale": "The count is metadata/secondary information; a smaller font and tighter top-margin visually subordinates it to the heading while keeping it distinct from the description paragraph below."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "2aa797a6-cb20-400f-a703-6eb2a0bc8a8d",
+  "files_changed": [
+    {
+      "change_kind": "modify",
+      "path": "app/changelog/page.tsx",
+      "summary": "Calculate changelog.length, derive the singular/plural label ('1 entry' vs 'N entries'), and render a <p> element with text-zinc-600 dark:text-zinc-400 directly below the <h1> and above the existing description paragraph."
+    },
+    {
+      "change_kind": "add",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx",
+      "summary": "Tests for AC1: verifies '2 entries' text is rendered, positioned immediately after h1, and carries muted zinc Tailwind classes."
+    },
+    {
+      "change_kind": "add",
+      "path": "__tests__/changelog/ChangelogPageSingular.test.tsx",
+      "summary": "Tests for AC2: verifies '1 entry' (singular) is displayed and '1 entries' is absent when changelog has exactly one entry."
+    },
+    {
+      "change_kind": "add",
+      "path": "__tests__/changelog/ChangelogPageZero.test.tsx",
+      "summary": "Tests for AC3: verifies '0 entries' is displayed when changelog.json is empty."
+    }
+  ],
+  "pr_ref": "stub://pr/2aa797a6-cb20-400f-a703-6eb2a0bc8a8d",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 130 tests pass (npm test). Lint clean (npm run lint). The count uses O(1) array.length \u2014 no perceptible latency introduced. Tailwind classes text-zinc-600 dark:text-zinc-400 used as specified. Count paragraph is positioned between <h1> and the existing description <p>."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/ChangelogPageSingular.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/ChangelogPageZero.test.tsx"
+    }
+  ]
+}

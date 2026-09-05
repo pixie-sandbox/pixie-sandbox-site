@@ -1,0 +1,34 @@
+{
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart LR\n  JSON[data/changelog.json] --> Page[app/changelog/page.tsx]\n  Page --> Count[\"Count Display (new)\"]\n  Page --> List[ChangelogList]",
+    "title": "Changelog Page Data Flow"
+  },
+  "components_touched": [
+    {
+      "change_kind": "modify",
+      "name": "app/changelog/page.tsx",
+      "summary": "Update the header section to include the total entry count calculation and display logic."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Specific muted color token (though BA implies standard zinc-600/400)"
+  ],
+  "feature_id": "2aa797a6-cb20-400f-a703-6eb2a0bc8a8d",
+  "rationale": "The requirement is to display the count of entries from `changelog.json` on the changelog page. \n\nThe logic for calculating the count is trivial (`changelog.length`) and can be done directly within `app/changelog/page.tsx` since the data is already imported there.\n\nI have decided to:\n1. Modify `app/changelog/page.tsx` to calculate the length of the imported `changelog` array.\n2. Implement the singular/plural logic ('1 entry' vs 'X entries') directly in the component.\n3. Use existing Tailwind classes for 'muted styling' (specifically `text-zinc-600 dark:text-zinc-400`) to ensure visual consistency with the existing description text.\n4. Position the count directly below the `<h1>` as requested.\n\nExisting decisions honored:\n- The `changelog.json` is the source of truth.\n- The page uses Tailwind zinc theme tokens.\n- The page maintains the existing layout structure.\n\n## Memory writes\n- decision: Changelog page displays total entry count directly below the H1 heading.\n- constraint: Count must use singular/plural grammar ('1 entry' vs 'X entries').",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "The calculation is O(1) (array length) and performed during server-side rendering of the page.",
+      "risk": "Performance impact of count calculation."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Follow the singular/plural grammar rules defined in the BA spec.",
+    "Use existing Tailwind zinc theme tokens for the 'muted' styling.",
+    "Ensure the count is positioned below the H1 and above the existing description paragraph."
+  ]
+}

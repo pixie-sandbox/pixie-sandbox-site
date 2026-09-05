@@ -1,0 +1,117 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "the changelog page is loaded with multiple entries in `changelog.json`",
+      "id": "AC1",
+      "then": "the system displays the correct count followed by the word 'entries' (e.g., '12 entries') directly under the heading in muted text.",
+      "when": "the page renders"
+    },
+    {
+      "given": "the changelog page is loaded with exactly one entry in `changelog.json`",
+      "id": "AC2",
+      "then": "the system displays '1 entry' directly under the heading in muted text.",
+      "when": "the page renders"
+    },
+    {
+      "given": "the changelog page is loaded with zero entries in `changelog.json`",
+      "id": "AC3",
+      "then": "the system displays '0 entries' directly under the heading in muted text.",
+      "when": "the page renders"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The 'muted styling' refers to a standard UI pattern (e.g., secondary text color or reduced opacity) consistent with the existing Sandbox site design.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "The Sandbox site changelog page will display the total count of all entries found in the `changelog.json` data file. This count will appear prominently at the top of the page, positioned directly beneath the main page heading, using muted text styling to distinguish it from primary headings.",
+  "constraints": [
+    {
+      "detail": "The count calculation must not introduce perceptible latency to the page load, as it relies on the existing `changelog.json` data fetch.",
+      "kind": "performance"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "2aa797a6-cb20-400f-a703-6eb2a0bc8a8d",
+  "flows": [],
+  "must": [
+    "The system shall display the total number of entries from `changelog.json` on the changelog page.",
+    "The system shall display the count in the format '[number] entries' (e.g., '42 entries').",
+    "IF the total count is exactly 1, THEN the system shall display '1 entry'.",
+    "The system shall position the count text directly below the changelog page heading.",
+    "The system shall apply muted styling to the count text."
+  ],
+  "open_questions": [],
+  "outcome": "Users can see the total number of updates recorded on the changelog page at a glance.",
+  "rationale": "Adding a summary count provides immediate context regarding the volume of updates available. Placing it under the heading with muted styling ensures it is informative without competing for visual attention with the primary page title.",
+  "risks": [],
+  "rollout": null,
+  "schema_version": 2,
+  "should": [],
+  "user_stories": [
+    {
+      "criteria": [
+        "The count is visible immediately below the heading.",
+        "The count correctly handles singular vs plural grammar ('1 entry' vs 'X entries')."
+      ],
+      "references": [],
+      "role": "Sandbox User",
+      "so_that": "I can quickly understand how many updates have been documented.",
+      "want": "to see a total count of changelog entries at the top of the page"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Gauge the frequency and volume of updates to the sandbox environment."
+      ],
+      "name": "Sandbox User",
+      "pain_points": [
+        "Having to manually count or scroll through entries to understand the scale of recent changes."
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": null,
+            "text": "Changelog",
+            "type": "header"
+          },
+          {
+            "emphasis": "muted",
+            "text": "42 entries",
+            "type": "text"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "New feature added to sandbox environment...",
+                "type": "text"
+              }
+            ],
+            "title": "Recent Update",
+            "type": "card"
+          }
+        ],
+        "title": "Sandbox Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Changelog Page Header"
+    }
+  ],
+  "wont": [
+    "The system won't apply any time-based filters to the count.",
+    "The system won't include any entries not present in the `changelog.json` file."
+  ]
+}
