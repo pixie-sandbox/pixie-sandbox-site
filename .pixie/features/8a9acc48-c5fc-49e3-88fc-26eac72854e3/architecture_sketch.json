@@ -1,0 +1,35 @@
+{
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart TD\n  P[app/changelog/page.tsx] --> CL[ChangelogList.tsx]\n  P --> BT[\"'Back to top' Anchor (New)\"]\n  BT --> W[window.scrollTo]",
+    "title": "Changelog Page Structure Delta"
+  },
+  "components_touched": [
+    {
+      "change_kind": "modify",
+      "name": "app/changelog/page.tsx",
+      "summary": "Add the 'Back to top' anchor link immediately after <ChangelogList /> inside the <main> element."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Specific element ID for the heading (assumed to be the H1 in page.tsx)"
+  ],
+  "feature_id": "8a9acc48-c5fc-49e3-88fc-26eac72854e3",
+  "rationale": "The previous design (creating a separate component) was explicitly rejected by the reviewer. The requirement is for a single anchor link located within `app/changelog/page.tsx`. \n\nTo implement this:\n1. Modify `app/changelog/page.tsx` to include an `<a>` tag (or a button with a click handler) right after `<ChangelogList entries={entries} />`.\n2. Ensure the `<h1>` in the header has an `id` (e.g., `id=\"changelog-heading\"`) so the link has a valid target.\n3. Apply Tailwind classes for right-alignment (`text-right` or `ml-auto` depending on container) and muted text (`text-zinc-500 dark:text-zinc-400`).\n4. To satisfy the \"smooth scroll\" requirement without a new component, use the CSS property `scroll-behavior: smooth` on the document/html level (if not already present) or use a simple `onClick` handler if a small client-side wrapper is preferred, but the reviewer's intent strongly suggests keeping it as simple as possible. Given \"put it inline\", an anchor to an ID is the most compliant interpretation.\n\n## Memory writes\n- decision: The 'Back to top' link for the changelog page is implemented as an inline anchor within app/changelog/page.tsx rather than a standalone component.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Use a standard anchor with an ID or a small client-side 'use client' helper if smooth scroll cannot be achieved with pure CSS/HTML. Given the reviewer's instruction to \"put it inline\", a standard anchor pointing to the H1's ID is the lowest-impact path.",
+      "risk": "Smooth scroll behavior might vary by browser if using only an anchor."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Do NOT create a new BackToTop.tsx component.",
+    "The link must be inline in app/changelog/page.tsx.",
+    "The link must be right-aligned and use muted styling (zinc-500/400).",
+    "The link must follow the last changelog entry in the flow."
+  ]
+}
