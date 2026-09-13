@@ -19,7 +19,7 @@ export default function ChangelogPage() {
 
   return (
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col py-16 px-16 bg-white dark:bg-black">
+      <main id="main-content" className="flex flex-1 w-full max-w-3xl flex-col py-16 px-16 bg-white dark:bg-black">
         <header className="mb-10">
           <h1 id="changelog-heading" className="text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
             Changelog
