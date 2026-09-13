@@ -1,0 +1,122 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "a user is on any page of the sandbox site",
+      "id": "AC1",
+      "then": "they see a centered footer containing the current year and a GitHub icon/link",
+      "when": "they scroll to the bottom of the page"
+    },
+    {
+      "given": "the site is in light mode",
+      "id": "AC2",
+      "then": "the year and GitHub link are clearly readable",
+      "when": "the footer is viewed"
+    },
+    {
+      "given": "the site is in dark mode",
+      "id": "AC3",
+      "then": "the year and GitHub link are clearly readable",
+      "when": "the footer is viewed"
+    },
+    {
+      "given": "the user clicks the GitHub link in the footer",
+      "id": "AC4",
+      "then": "the user is navigated to https://github.com/pixie-sandbox/pixie-sandbox-site",
+      "when": "the link is activated"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The GitHub icon will be implemented as an inline SVG to maintain consistency with existing component patterns.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The existing Footer component in components/Footer.tsx is the correct location for these changes.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Update the existing site footer to include a link to the GitHub repository. The footer will display the current year and a GitHub icon accompanied by a link, all centered on the page. The styling will follow the existing Tailwind CSS patterns and ensure readability in both light and dark themes.",
+  "constraints": [
+    {
+      "detail": "Must use existing Tailwind CSS configuration and avoid introducing new npm packages for icons.",
+      "kind": "other"
+    },
+    {
+      "detail": "Theme handling must not cause a flash of unstyled or wrongly-themed content (per ANZ Frontend Coding Standards).",
+      "kind": "security"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "d289110e-b0b7-4e7d-bc05-820da806bfd7",
+  "flows": [],
+  "must": [
+    "The system shall display the current year dynamically in the footer.",
+    "The system shall display a link to https://github.com/pixie-sandbox/pixie-sandbox-site in the footer.",
+    "The system shall include a GitHub icon alongside the repository link.",
+    "The system shall render the footer content centered on the page.",
+    "The system shall render the footer on every page of the site.",
+    "The system shall use an inline SVG for the GitHub icon to avoid new dependencies."
+  ],
+  "open_questions": [],
+  "outcome": "Users can see the current year and easily access the project's GitHub repository from a centered footer on every page.",
+  "rationale": "The feature is an enhancement of an existing component. Centering the content provides a clean, modern look suitable for a sandbox site. Using inline SVGs and default Tailwind classes minimizes technical debt and maintains the existing design system without adding bloat.",
+  "risks": [],
+  "rollout": null,
+  "schema_version": 2,
+  "should": [
+    "The system shall use default Tailwind CSS link styling for the GitHub link."
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "Link is present on all pages",
+        "Link is clearly identifiable by an icon"
+      ],
+      "references": [],
+      "role": "Site Visitor",
+      "so_that": "I can quickly visit the repository to view the code.",
+      "want": "a visible GitHub link in the footer"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Find the source code for the sandbox site",
+        "Verify the current year/project status"
+      ],
+      "name": "Site Visitor",
+      "pain_points": [
+        "Difficulty locating repository links in a minimal UI"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "\u00a9 2025 | [Icon] GitHub",
+                "type": "text"
+              }
+            ],
+            "title": "Footer Container",
+            "type": "card"
+          }
+        ],
+        "title": "Footer View",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Site Footer"
+    }
+  ],
+  "wont": [
+    "The system won't add any new external icon libraries.",
+    "The system won't implement a split layout (e.g., year on left, link on right)."
+  ]
+}
