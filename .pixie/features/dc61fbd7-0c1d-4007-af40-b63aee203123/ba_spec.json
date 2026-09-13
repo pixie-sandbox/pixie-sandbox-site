@@ -1,0 +1,171 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "A user enters a non-existent URL in the browser",
+      "id": "AC1",
+      "then": "The user sees the custom error message and the 'Return to Home' button instead of the framework default.",
+      "when": "The page loads"
+    },
+    {
+      "given": "The user is on the 404 page",
+      "id": "AC2",
+      "then": "They are redirected to the site's homepage.",
+      "when": "They click the 'Return to Home' button"
+    },
+    {
+      "given": "The user is navigating via keyboard",
+      "id": "AC3",
+      "then": "The focus moves predictably to the 'Return to Home' button and follows the header/footer structure.",
+      "when": "They tab through the 404 page"
+    },
+    {
+      "given": "The user has dark mode enabled in their system or site settings",
+      "id": "AC4",
+      "then": "The colors and contrast conform to the site's dark theme specification.",
+      "when": "The 404 page is rendered"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The sandbox site uses a standard Next.js App Router or Pages Router pattern that allows for a custom not-found component.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The existing theme provider handles CSS variable switching for light/dark modes automatically.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Replace the default Next.js framework 404 error page with a custom, branded 404 page for the Pixie sandbox site. The page will provide clear, plain-language feedback that the requested URL was not found and offer a single, primary call-to-action to return to the homepage. The page will be integrated into the existing site layout, including the global header and footer, and will support light/dark themes and accessibility standards.",
+  "constraints": [
+    {
+      "detail": "Must use existing Next.js routing patterns for 404 handling.",
+      "kind": "other"
+    },
+    {
+      "detail": "Ensure no sensitive system information or stack traces are leaked in the error message.",
+      "kind": "security"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "dc61fbd7-0c1d-4007-af40-b63aee203123",
+  "flows": [],
+  "must": [
+    "Display a custom message: 'The page you're looking for doesn't exist or has been moved. Check the URL or head back to the homepage.'",
+    "Provide a prominent 'Return to Home' button that links to the site root.",
+    "Integrate with the existing global site layout (Header and Footer).",
+    "Support both light and dark themes via the site's existing theme provider.",
+    "Meet WCAG accessibility standards (keyboard navigability and screen-reader compatibility)."
+  ],
+  "open_questions": [],
+  "outcome": "Users encounter a branded, accessible error page instead of a broken framework default when they navigate to a non-existent URL.",
+  "rationale": "A custom 404 page is a requirement for professional-looking sites. By including the header and footer, we provide context and prevent the user from feeling 'lost'. Keeping the navigation minimal (just a home button) reduces cognitive load during an error state.",
+  "risks": [
+    {
+      "mitigation": "Ensure the custom page only uses the approved static string and does not print the requested path or error objects directly to the DOM.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Information Leakage"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [
+      "404 error rate (to monitor if broken links are increasing elsewhere)"
+    ],
+    "stages": [
+      "Development",
+      "UAT",
+      "Production canary",
+      "Full release"
+    ]
+  },
+  "schema_version": 2,
+  "should": [
+    "Include a subtle icon or graphic to visually reinforce the error state."
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "Message is in plain English",
+        "Message does not contain technical jargon"
+      ],
+      "references": [],
+      "role": "Site Visitor",
+      "so_that": "I don't think the site is completely broken",
+      "want": "a clear explanation of why I can't see the page I requested"
+    },
+    {
+      "criteria": [
+        "Button is easy to find",
+        "Button works immediately"
+      ],
+      "references": [],
+      "role": "Site Visitor",
+      "so_that": "I can quickly resume my task",
+      "want": "a single button to get back to the start"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Recover from a mistyped URL",
+        "Navigate back to functional parts of the site"
+      ],
+      "name": "Site Visitor",
+      "pain_points": [
+        "Confusion caused by generic framework error pages",
+        "Feeling stuck when a link is broken"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": null,
+            "text": "Pixie Sandbox",
+            "type": "header"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "The page you're looking for doesn't exist or has been moved. Check the URL or head back to the homepage.",
+                "type": "text"
+              },
+              {
+                "style": "primary",
+                "text": "Return to Home",
+                "type": "button"
+              }
+            ],
+            "title": null,
+            "type": "card"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "muted",
+                "text": "\u00a9 2025 Pixie Sandbox",
+                "type": "text"
+              }
+            ],
+            "type": "footer"
+          }
+        ],
+        "title": "404 Not Found",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "404 Error Page"
+    }
+  ],
+  "wont": [
+    "Include a search bar.",
+    "Include a sitemap or secondary navigation links.",
+    "Use a 'clean' layout that strips the header and footer."
+  ]
+}

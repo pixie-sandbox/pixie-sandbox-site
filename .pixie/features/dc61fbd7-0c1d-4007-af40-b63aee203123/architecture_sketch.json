@@ -1,0 +1,23 @@
+{
+  "components_touched": [
+    {
+      "change_kind": "new",
+      "name": "app/not-found.tsx",
+      "summary": "Creates the custom 404 error page with branded messaging, a 'Return to Home' link, and layout mirroring the homepage."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Visual style of the 'subtle icon or graphic' (should be simple and not require new assets)."
+  ],
+  "feature_id": "dc61fbd7-0c1d-4007-af40-b63aee203123",
+  "rationale": "The goal is to replace the default Next.js 404 page with a branded experience. \n\nI have analyzed the existing `app/layout.tsx` and `app/page.tsx`. \n- `app/layout.tsx` provides the global `ThemeProvider`, a `header` with `ThemeToggle`, and a `Footer`. \n- `app/page.tsx` establishes the visual pattern for the site: an outer wrapper with `bg-zinc-50 dark:bg-black` and an inner main area with `bg-white dark:bg-black`.\n\nTo implement the 404 page:\n1. I will use `app/not-found.tsx` which is the standard Next.js App Router pattern for custom 404s.\n2. The component will wrap its content in a `div` structure mirroring `app/page.tsx` to ensure visual continuity (background colors, padding, and layout).\n3. I will include the specific copy requested by the BA.\n4. I will use `next/link` for the 'Return to Home' button to satisfy AC2 and ensure client-side navigation.\n5. I will use Tailwind's `zinc` palette (e.g., `text-zinc-600 dark:text-zinc-400` and `text-zinc-950 dark:text-zinc-50`) to match the existing design system as per prior mission decisions.\n6. Accessibility (AC3) will be addressed by using semantic HTML elements, ensuring the button is reachable via Tab, and placing the content within the standard layout flow.\n\n## Memory writes\n- decision: Use `app/not-found.tsx` for custom 404 handling to leverage Next.js built-in routing.\n- decision: Mirror the `app/page.tsx` structure (outer `bg-zinc-50/dark:bg-black` and inner `bg-white/dark:bg-black`) for the 404 page to ensure visual consistency.\n- decision: Use Tailwind `zinc` color scales for text and buttons to maintain brand consistency without new tokens.\n- constraint: The 404 page must be accessible via keyboard and screen readers using semantic HTML.\n- constraint: The 404 page must support light and dark themes via the existing `ThemeProvider` and Tailwind classes.",
+  "risks": [],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Stay within the `app/` directory for the new file.",
+    "Reuse existing Tailwind classes and color tokens found in `app/page.tsx`.",
+    "Do not modify `app/layout.tsx` or `app/page.tsx`."
+  ]
+}
