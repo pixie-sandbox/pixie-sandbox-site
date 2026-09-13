@@ -6,7 +6,8 @@ describe("Footer", () => {
 
   it("AC1: renders the current year", () => {
     render(<Footer />);
-    expect(screen.getByText(new RegExp(currentYear))).toBeInTheDocument();
+    // Use the span selector to avoid matching the "Last updated" date paragraph
+    expect(screen.getByText(new RegExp(currentYear), { selector: "span" })).toBeInTheDocument();
   });
 
   it("AC1: renders a link to the GitHub repository", () => {
