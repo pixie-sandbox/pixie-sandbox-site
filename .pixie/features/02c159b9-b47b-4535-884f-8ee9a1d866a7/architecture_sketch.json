@@ -1,0 +1,55 @@
+{
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart TD\n  U[User/Keyboard User] -->|Tab| SL[\"SkipLink (new)\"]\n  SL -->|Enter/Space| M[Main Content Container]\n  \n  subgraph Layout Structure\n    SL\n    H[Header]\n    M\n    F[Footer]\n  end\n\n  subgraph Layout Root\n    Root[RootLayout.tsx]\n  end\n\n  Root --> SL\n  Root --> H\n  Root --> M\n  Root --> F",
+    "title": "Skip Link Interaction Flow"
+  },
+  "components_touched": [
+    {
+      "change_kind": "modify",
+      "name": "app/layout.tsx",
+      "summary": "Insert the SkipLink component as the first child of the <body> element to ensure it is the first focusable element."
+    },
+    {
+      "change_kind": "new",
+      "name": "components/SkipLink.tsx",
+      "summary": "A new component that renders an anchor link with styles to be visually hidden (using Tailwind's 'sr-only' pattern) but visible on focus."
+    },
+    {
+      "change_kind": "modify",
+      "name": "app/page.tsx",
+      "summary": "Add 'id=\"main-content\"' to the <main> element to provide a target for the skip link."
+    },
+    {
+      "change_kind": "modify",
+      "name": "app/changelog/page.tsx",
+      "summary": "Add 'id=\"main-content\"' to the <main> element to provide a target for the skip link."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [
+    "Exact Tailwind utility classes for the 'visually-hidden' vs 'visible-on-focus' state (e.g., using `sr-only` and `focus:not(.sr-only)` or similar)."
+  ],
+  "feature_id": "02c159b9-b47b-4535-884f-8ee9a1d866a7",
+  "rationale": "The goal is to add a skip-to-content link to satisfy WCAG accessibility requirements. \n\nImplementation Strategy:\n1. **Modify `app/layout.tsx`**: Add the `SkipLink` component as the first child of `<body>` to ensure it captures the first Tab press.\n2. **Create `components/SkipLink.tsx`**: A new component that renders an `<a href=\"#main-content\">` tag. It will use the Tailwind `sr-only` class to hide it from sight while keeping it in the accessibility tree, and a focus-visible utility to show it when focused.\n3. **Update Page Components**: Ensure all primary content containers (the `<main>` tags in `app/page.tsx`, `app/changelog/page.tsx`, etc.) have the `id=\"main-content\"` attribute.\n\nPrior decisions honored:\n- The design maintains the existing layout structure defined in `RootLayout`.\n- It uses the existing Tailwind CSS theme/utility approach consistent with the sandbox.\n\n## Memory writes\n- decision: Skip link should be implemented as a dedicated component and placed as the first child of the body in RootLayout to ensure it is the first focusable element.\n- constraint: The skip link must be visually hidden by default and only visible when it receives keyboard focus.\n- constraint: The skip link must target a unique, stable ID on the <main> element of each page.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Ensure the link is the very first child of the body or directly inside the body tag within RootLayout to ensure it is the first focusable element.",
+      "risk": "Skip link is not the first focusable element in the DOM."
+    },
+    {
+      "likelihood": "low",
+      "mitigation": "Add an `id=\"main-content\"` (or similar) to the `<main>` element in every page component.",
+      "risk": "The skip link target does not exist or is not focusable."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "The skip link must be the first focusable element in the DOM.",
+    "Use Tailwind CSS for the visually-hidden/visible-on-focus logic (e.g., using 'sr-only' combined with focus-visible/focus styles).",
+    "Ensure the target <main> element in all pages has a matching id (e.g., 'main-content').",
+    "Stay within the app/ and components/ directories."
+  ]
+}
