@@ -1,0 +1,66 @@
+{
+  "branch": "pixie/7812723e-d3dd-4105-a7ef-b2489358dae5",
+  "decisions_log": [
+    {
+      "decision": "Did not use a <time> element for the date value (the 'Should' requirement).",
+      "rationale": "The testing-library getNodeText implementation only concatenates direct child TEXT_NODE children. With <time> inside <p>, getNodeText(<p>) returns only 'Last updated: ' (not the <time>'s text), so getByText(/Last updated: 29 Aug 2026/) finds no element. Omitting <time> makes the p's two direct text nodes ('Last updated: ' + '29 Aug 2026') join into the full string, satisfying the provided test cases. The deferred decision in the design explicitly left this call to the engineer."
+    },
+    {
+      "decision": "Mocked BackToTop in Footer.lastUpdated.test.tsx with a jest.mock factory.",
+      "rationale": "The AC3 test uses jest.resetModules() + jest.doMock() + dynamic import. After resetModules(), BackToTop's useState/useEffect are called with a freshly-required React instance that differs from @testing-library/react's renderer instance, producing 'Invalid hook call'. Registering a jest.mock factory for BackToTop before the reset persists across the module reset, so the re-imported Footer renders BackToTop as a no-op null component and the hook mismatch never occurs."
+    },
+    {
+      "decision": "Fixed __tests__/Footer.test.tsx existing year query to use { selector: 'span' }.",
+      "rationale": "The pre-existing test used getByText(new RegExp(currentYear)) which previously matched only the copyright <span>. After adding the 'Last updated: 29 Aug 2026' <p>, the year '2026' also appears in that paragraph's direct text nodes, causing a multiple-match error. Constraining to span elements restores the original intent without changing what the test asserts."
+    },
+    {
+      "decision": "Parsed the date portion of the ISO string directly (new Date(year, month-1, day)) rather than new Date(isoString).",
+      "rationale": "new Date('2026-08-29T00:00:00.000Z') is a UTC instant. On a server in a timezone behind UTC, converting to local time would shift the date back one day (e.g. Aug 28 in UTC-12). Slicing the YYYY-MM-DD portion and constructing a local date avoids any timezone-offset shift, producing a stable display date regardless of server locale."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "7812723e-d3dd-4105-a7ef-b2489358dae5",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/Footer.tsx",
+      "summary": "Import changelog.json, find the most recent entry, format its date as DD MMM YYYY, and conditionally render a 'Last updated: ...' paragraph beneath the copyright row. Footer remains a Server Component (no 'use client', useState, or useEffect). Added ChangelogEntry type annotation so TypeScript catches a schema mismatch at build time."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/Footer.lastUpdated.test.tsx",
+      "summary": "New test file covering AC1\u2013AC4: mocks changelog.json with two entries and verifies the correct date is displayed, the older date is omitted, the row sits inside the footer landmark, and the row is absent when the changelog is empty."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/Footer.test.tsx",
+      "summary": "Scoped the existing year-check query to { selector: 'span' } to prevent a multiple-match error that arose because the new 'Last updated: 29 Aug 2026' paragraph also contains the year '2026' as a direct text node."
+    }
+  ],
+  "pr_ref": "stub://pr/7812723e-d3dd-4105-a7ef-b2489358dae5",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 136 tests pass (npm test). Lint passes (npm run lint). Build passes (npm run build). Footer remains a Server Component. Changelog imported via @/data/changelog.json matching the established pattern. Timestamp row omitted from DOM when changelog is empty. The <time> 'Should' requirement was intentionally skipped \u2014 see decisions_log for rationale."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/Footer.lastUpdated.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/Footer.lastUpdated.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/Footer.lastUpdated.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/Footer.lastUpdated.test.tsx"
+    }
+  ]
+}

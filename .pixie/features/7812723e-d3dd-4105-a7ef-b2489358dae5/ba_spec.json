@@ -1,0 +1,231 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "data/changelog.json contains at least one entry, and the most recent entry has date '2026-08-29T00:00:00.000Z'",
+      "id": "AC1",
+      "then": "the footer contains the text 'Last updated: 29 Aug 2026'",
+      "when": "the footer renders"
+    },
+    {
+      "given": "data/changelog.json contains multiple entries with different dates, where '2026-08-29T00:00:00.000Z' is the most recent and '2026-01-15T00:00:00.000Z' is an older entry",
+      "id": "AC2",
+      "then": "the footer shows '29 Aug 2026' and does not show '15 Jan 2026'",
+      "when": "the footer renders"
+    },
+    {
+      "given": "data/changelog.json contains no entries",
+      "id": "AC3",
+      "then": "no text matching 'Last updated' is present in the footer",
+      "when": "the footer renders"
+    },
+    {
+      "given": "data/changelog.json contains at least one entry",
+      "id": "AC4",
+      "then": "the timestamp row is inside the footer landmark (role='contentinfo') and appears on its own row beneath the copyright year",
+      "when": "the footer renders"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4"
+      ],
+      "entry_points": [
+        "@/components/Footer"
+      ],
+      "path": "__tests__/Footer.lastUpdated.test.tsx",
+      "source": "import { render, screen } from '@testing-library/react'\n\njest.mock('@/data/changelog.json', () => [\n  { title: 'New Feature Released', description: 'Desc', date: '2026-08-29T00:00:00.000Z' },\n  { title: 'Earlier Entry', description: 'Desc', date: '2026-01-15T00:00:00.000Z' },\n])\n\nimport Footer from '@/components/Footer'\n\ndescribe('Footer \u2013 last updated timestamp', () => {\n  it('AC1: renders Last updated: 29 Aug 2026 for the most recent entry', () => {\n    render(<Footer />)\n    expect(screen.getByText(/Last updated: 29 Aug 2026/i)).toBeInTheDocument()\n  })\n\n  it('AC2: shows the most recent date, not an older entry', () => {\n    render(<Footer />)\n    expect(screen.queryByText(/15 Jan 2026/i)).not.toBeInTheDocument()\n    expect(screen.getByText(/29 Aug 2026/i)).toBeInTheDocument()\n  })\n\n  it('AC4: timestamp row is inside the footer contentinfo landmark', () => {\n    render(<Footer />)\n    const footer = screen.getByRole('contentinfo')\n    expect(footer).toHaveTextContent('Last updated: 29 Aug 2026')\n  })\n})\n\ndescribe('Footer \u2013 AC3: empty changelog', () => {\n  it('omits the Last updated row when changelog has no entries', async () => {\n    jest.resetModules()\n    jest.doMock('@/data/changelog.json', () => [])\n    const { default: FooterEmpty } = await import('@/components/Footer')\n    render(<FooterEmpty />)\n    expect(screen.queryByText(/Last updated/i)).not.toBeInTheDocument()\n  })\n})"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The footer element carries a role='contentinfo' semantic landmark (either via an explicit role or the native <footer> element), making it testable by role.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The date field in data/changelog.json always contains a valid ISO 8601 string. No defensive parsing or error boundary is required.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The timestamp should appear on every page (global footer), not only on /changelog. The request said 'footer of the sandbox site', which implies global.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [
+    {
+      "items": [
+        "Import changelog.json in components/Footer.tsx",
+        "Derive the most recent date (reduce or sort-and-take-first)",
+        "Format the date as DD MMM YYYY",
+        "Render the conditional timestamp row beneath the copyright line",
+        "Add AC1\u2013AC4 tests"
+      ],
+      "size": "small",
+      "title": "Add timestamp to Footer"
+    }
+  ],
+  "clarified_description": "Add a 'Last updated' timestamp row to the site-wide footer. The row appears on its own line beneath the existing copyright year, left-aligned to match it. The date is derived from the most recent entry in data/changelog.json and formatted as 'Last updated: DD MMM YYYY'. When the changelog contains no entries the row is omitted entirely \u2014 no fallback text is shown.",
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "graph TD\n  A[app/layout.tsx] --> B[components/Footer.tsx]\n  B --> C[data/changelog.json]",
+    "title": "Footer dependency"
+  },
+  "constraints": [
+    {
+      "detail": "data/changelog.json is the sole source of the date. Each entry must carry a date field with an ISO 8601 string value. If the field is renamed or removed in a future schema change, the timestamp silently breaks.",
+      "kind": "integration"
+    },
+    {
+      "detail": "Footer is a Server Component in Next.js 16.2.6. changelog.json is imported at build/request time, not fetched per-request. No runtime fetch latency is introduced.",
+      "kind": "performance"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [
+    "Whether to use a `<time datetime='YYYY-MM-DD'>` element or a plain `<p>`/`<span>` for the date value. The should requirement expresses a preference for `<time>`; the final call is left to the engineer.",
+    "The exact Tailwind utility classes for the timestamp text. The engineer should read the existing Footer.tsx and match the copyright line's muted style rather than inventing new ones."
+  ],
+  "feature_id": "7812723e-d3dd-4105-a7ef-b2489358dae5",
+  "flows": [
+    {
+      "kind": "flowchart",
+      "source": "graph TD\n  A[Footer renders] --> B[Import data/changelog.json]\n  B --> C{entries.length > 0?}\n  C -->|yes| D[Find entry with max date value]\n  D --> E[Format as DD MMM YYYY]\n  E --> F[Render Last updated: date row]\n  C -->|no| G[No timestamp row rendered]",
+      "title": "Footer timestamp render logic"
+    }
+  ],
+  "must": [
+    "WHEN a visitor loads any page, the system shall render a row in the site footer displaying the text 'Last updated:' followed by the most recent date in data/changelog.json formatted as DD MMM YYYY.",
+    "The system shall derive the displayed date by finding the entry in data/changelog.json with the latest date value.",
+    "The system shall format the date as DD MMM YYYY per ANZ Digital Date & Time Display Standard DTS-04 (e.g. '29 Aug 2026' for 2026-08-29T00:00:00.000Z).",
+    "IF data/changelog.json contains no entries THEN the system shall not render the timestamp row.",
+    "The system shall position the timestamp row on its own line beneath the copyright year, and left-aligned to match it."
+  ],
+  "open_questions": [
+    "The exact Tailwind classes for muted text in the existing Footer are not visible in this context. The engineer should read components/Footer.tsx and match the copyright line's styling for the timestamp row.",
+    "Next.js 16.2.6 may have breaking changes in how JSON imports behave. AGENTS.md flags this; the engineer should verify the direct import pattern against node_modules/next/dist/docs/ before writing the implementation.",
+    "__tests__/Footer.test.tsx already exists with tests for year rendering, GitHub link, and footer role. The engineer should decide whether to fold the new tests into that file or keep them in Footer.lastUpdated.test.tsx."
+  ],
+  "outcome": "Every page of the sandbox site shows when the changelog was last updated, directly below the copyright line in the footer.",
+  "rationale": "Footer self-imports `data/changelog.json` rather than receiving a `lastUpdated` prop from `app/layout.tsx`. This keeps the change self-contained to one file and matches the existing pattern in `app/changelog/page.tsx`. The alternative \u2014 passing a prop through `layout.tsx` \u2014 adds a call-site change for no gain, since the data is static and Footer is already a Server Component that can read it directly.\n\nThe DD MMM YYYY format is mandated by DTS-04 and removes date-format ambiguity across the three markets ANZ Digital serves. The label 'Last updated:' was chosen by the user; it is descriptive without being verbose.\n\nThe empty-state decision (hide, not fallback) keeps the footer clean and avoids surfacing a misleading 'Last updated: never' state. A changelog with no entries is an infrastructure condition, not a message for a visitor.",
+  "risks": [
+    {
+      "mitigation": "AGENTS.md flags breaking changes in this version. Verify the direct JSON import pattern against node_modules/next/dist/docs/ before shipping.",
+      "reference": null,
+      "severity": "low",
+      "title": "JSON import behaviour may differ in Next.js 16.2.6"
+    },
+    {
+      "mitigation": "Type the imported JSON as an array of objects with a required `date: string` field in Footer.tsx so TypeScript catches a mismatch at build time.",
+      "reference": null,
+      "severity": "low",
+      "title": "changelog.json schema change breaks timestamp silently"
+    }
+  ],
+  "rollout": null,
+  "schema_version": 7,
+  "should": [
+    "The system should wrap the date value in a <time> element with a datetime attribute set to the ISO 8601 date string (e.g. datetime='2026-08-29'), for semantic HTML and screen-reader support."
+  ],
+  "standards_applied": [
+    {
+      "applies": true,
+      "criteria": [
+        "AC1",
+        "AC2"
+      ],
+      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+      "why_not": "The feature renders only a reformatted ISO date string sourced from a structured date field in changelog.json. No free-form text from changelog entries (titles, descriptions) is surfaced in the footer, so there is no path through which internal work-tracking references could appear."
+    }
+  ],
+  "swe_constraints": [
+    "Footer must remain a Server Component \u2014 do not add 'use client', useState, or useEffect.",
+    "Import changelog data via `import changelog from '@/data/changelog.json'` \u2014 the established pattern (see app/changelog/page.tsx).",
+    "Match the Tailwind muted text styling of the existing copyright line for the timestamp row.",
+    "Render the timestamp row with a conditional expression \u2014 omit the element from the DOM entirely when the array is empty; do not hide it with CSS.",
+    "No changes to app/layout.tsx are needed; Footer derives the date internally.",
+    "Type the imported JSON as an array with a required `date: string` field so TypeScript catches a schema mismatch at build time."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/Footer.tsx",
+      "reason": "Add the timestamp row: import changelog data, find the most recent date, format it, and render conditionally."
+    },
+    {
+      "exists": true,
+      "path": "__tests__/Footer.test.tsx",
+      "reason": "Existing Footer test file. AC1\u2013AC4 tests belong here (or alongside it \u2014 see open_questions)."
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "The footer on every page shows 'Last updated: DD MMM YYYY' derived from the most recent changelog entry.",
+        "The timestamp is absent when the changelog has no entries."
+      ],
+      "references": [],
+      "role": "sandbox site visitor",
+      "so_that": "I can quickly judge whether the content is current",
+      "want": "to see when the site was last updated without navigating away from my current page"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Quickly assess whether the site content is current before relying on it"
+      ],
+      "name": "Sandbox site visitor",
+      "pain_points": [
+        "No visible freshness signal on the page; must navigate to the changelog to check when anything last changed"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "type": "divider"
+          },
+          {
+            "emphasis": "muted",
+            "text": "\u00a9 2026 Pixie  |  GitHub",
+            "type": "text"
+          },
+          {
+            "emphasis": "muted",
+            "text": "Last updated: 29 Aug 2026",
+            "type": "text"
+          },
+          {
+            "style": "link",
+            "text": "Back to top",
+            "type": "button"
+          }
+        ],
+        "title": "Site footer",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Footer with last-updated timestamp"
+    }
+  ],
+  "wont": [
+    "The system will not display a fallback or placeholder text when the changelog is empty.",
+    "The system will not make the timestamp interactive (no link, tooltip, or hover state).",
+    "The system will not display a time-of-day component or timezone alongside the date."
+  ]
+}
