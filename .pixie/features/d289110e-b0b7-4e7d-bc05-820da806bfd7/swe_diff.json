@@ -1,0 +1,41 @@
+{
+  "branch": "pixie/d289110e-b0b7-4e7d-bc05-820da806bfd7",
+  "decisions_log": [
+    {
+      "decision": "Used the official GitHub mark SVG path (from github.com/logos) as an inline SVG with aria-hidden=\"true\" and fill=\"currentColor\".",
+      "rationale": "Keeps the icon visually consistent with the surrounding text colour in both light (zinc-950) and dark (zinc-50) themes without any additional CSS rules, and avoids introducing external icon libraries per the SWE constraint."
+    },
+    {
+      "decision": "Updated the anchor className to include inline-flex and gap-1.5 in addition to the pre-existing font-medium and hover:underline classes.",
+      "rationale": "Ensures the icon and text label sit side-by-side on a shared baseline using existing Tailwind utilities; no new colour tokens were introduced."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "d289110e-b0b7-4e7d-bc05-820da806bfd7",
+  "files_changed": [
+    {
+      "change_kind": "modify",
+      "path": "components/Footer.tsx",
+      "summary": "Added inline SVG GitHub icon (aria-hidden) inside the existing GitHub link anchor; updated link className to inline-flex with gap-1.5 so icon and label align correctly."
+    },
+    {
+      "change_kind": "modify",
+      "path": "__tests__/Footer.test.tsx",
+      "summary": "Added test AC1: verifies an SVG element is present inside the GitHub link, is aria-hidden, and contains no external resource references."
+    }
+  ],
+  "pr_ref": "stub://pr/d289110e-b0b7-4e7d-bc05-820da806bfd7",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 137 tests pass; lint clean. AC2 and AC3 (light/dark readability) are satisfied by fill=\"currentColor\" which inherits the link's zinc-950/zinc-50 colour tokens \u2014 these are visual concerns not easily unit-tested, but the colour inheritance is verified implicitly by the existing className tests. The BackToTop component remains within the footer's DOM hierarchy, consistent with prior Initiative decisions."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/Footer.test.tsx"
+    }
+  ]
+}

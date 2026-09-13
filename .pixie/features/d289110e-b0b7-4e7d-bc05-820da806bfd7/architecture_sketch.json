@@ -1,0 +1,33 @@
+{
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart LR\n  F[\"Footer.tsx (modify)\"] --> B[\"BackToTop.tsx (existing)\"]\n  F --> SVG[\"GitHub Icon (new inline SVG)\"]\n  F --> Y[\"Year (dynamic)\"]\n  F --> L[\"GitHub Link (new)\"]",
+    "title": "Footer Component Update"
+  },
+  "components_touched": [
+    {
+      "change_kind": "modify",
+      "name": "components/Footer.tsx",
+      "summary": "Update the footer to include a GitHub icon (inline SVG) and a link to the repository. Ensure the year is dynamic (already exists) and everything is centered."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [],
+  "feature_id": "d289110e-b0b7-4e7d-bc05-820da806bfd7",
+  "rationale": "The `components/Footer.tsx` file already exists and contains a placeholder link to GitHub and a dynamic year. However, the BA spec specifically requests a GitHub icon and a cleaner centered layout. \n\nThe existing code actually already has a GitHub link:\n`<a href=\"https://github.com/pixie-sandbox/pixie-sandbox-site\" ...>GitHub</a>`\nand includes `<BackToTop />`.\n\nWait, looking closely at the current `components/Footer.tsx` content:\n```tsx\n<div className=\"mx-auto max-w-3xl flex items-center justify-center gap-2 text-sm text-zinc-600 dark:text-zinc-400\">\n  <span>&copy; {year}</span>\n  <span>&middot;</span>\n  <a\n    href=\"https://github.com/pixie-sandbox/pixie-sandbox-site\"\n    ...\n  >\n    GitHub\n  </a>\n  <BackToTop />\n</div>\n```\n\nThe BA spec asks for:\n1. Current year (Done)\n2. GitHub link (Done)\n3. GitHub icon (Missing)\n4. Centered on page (Done)\n5. Inline SVG for icon (Required)\n\nThe `BackToTop` component is currently inside the flex container in the footer. The spec says \"The 'Back to top' control must not be a floating/fixed element; it must reside within the footer's DOM hierarchy.\" (Decision from memory).\n\nThe plan is to refine the `Footer.tsx` to include the inline SVG icon before the \"GitHub\" text and ensure the visual hierarchy matches the request.\n\n## Memory writes\n- decision: GitHub icon for footer must be implemented as an inline SVG to avoid new dependencies.\n- decision: Footer styling uses existing Tailwind zinc-600/400 (muted) and zinc-950/50 (link) color tokens.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "Use an inline SVG for the icon to ensure no extra network requests or library dependencies.",
+      "risk": "Adding external icon libraries might increase bundle size or introduce dependency management overhead."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Use inline SVG for the GitHub icon.",
+    "Maintain existing Tailwind zinc-600/400 and zinc-950/50 color patterns.",
+    "Ensure the layout remains centered as per BA spec.",
+    "Do not introduce new npm packages."
+  ]
+}

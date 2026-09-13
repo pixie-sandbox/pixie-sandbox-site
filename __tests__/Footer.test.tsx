@@ -20,6 +20,17 @@ describe("Footer", () => {
     );
   });
 
+  it("AC1: renders an inline SVG GitHub icon inside the GitHub link", () => {
+    const { container } = render(<Footer />);
+    const link = screen.getByRole("link", { name: /github/i });
+    const svg = link.querySelector("svg");
+    expect(svg).toBeInTheDocument();
+    // Icon is decorative — should be hidden from assistive technology
+    expect(svg).toHaveAttribute("aria-hidden", "true");
+    // SVG must not introduce any external resource (inline only)
+    expect(container.querySelector('use[href]')).not.toBeInTheDocument();
+  });
+
   it("AC4: opens the GitHub link in a new tab", () => {
     render(<Footer />);
     const link = screen.getByRole("link", { name: /github/i });
