@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import changelog from "@/data/changelog.json";
-import ChangelogList from "@/components/changelog/ChangelogList";
+import ChangelogFilteredList from "@/components/changelog/ChangelogFilteredList";
 
 export const metadata: Metadata = {
   title: "Changelog",
@@ -25,13 +25,10 @@ export default function ChangelogPage() {
             Changelog
           </h1>
           <p className="mt-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">
-            {entries.length === 1 ? "1 entry" : `${entries.length} entries`}
-          </p>
-          <p className="mt-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">
             A record of updates to this site.
           </p>
         </header>
-        <ChangelogList entries={entries} />
+        <ChangelogFilteredList entries={entries} />
         <div className="text-right mt-8">
           <a
             href="#changelog-heading"
