@@ -1,0 +1,400 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "the changelog page has been rendered",
+      "id": "AC1",
+      "then": "a `<select>` control labelled 'Year:' is visible, has accessible name 'Filter entries by year', and its selected option is 'All years'",
+      "when": "a reader looks above the entry list"
+    },
+    {
+      "given": "the changelog data contains entries in the years 2024, 2025 and 2026",
+      "id": "AC2",
+      "then": "its options are exactly 'All years', '2026', '2025', '2024' in that order",
+      "when": "the year filter is rendered"
+    },
+    {
+      "given": "the changelog data contains multiple entries in the same year",
+      "id": "AC3",
+      "then": "that year appears exactly once in the option list",
+      "when": "the year filter is rendered"
+    },
+    {
+      "given": "the changelog data is later extended with an entry in a year not previously represented",
+      "id": "AC4",
+      "then": "the new year appears in the option list with no code change to the filter component",
+      "when": "the year filter is rendered against the updated data"
+    },
+    {
+      "given": "the year filter is showing 'All years'",
+      "id": "AC5",
+      "then": "only entries whose date falls in that year are visible, in newest-first order, and the URL is unchanged",
+      "when": "the reader selects a specific year"
+    },
+    {
+      "given": "the year filter is showing a specific year",
+      "id": "AC6",
+      "then": "every entry in the changelog is visible again in newest-first order",
+      "when": "the reader selects 'All years'"
+    },
+    {
+      "given": "a year with exactly one entry is selected",
+      "id": "AC7",
+      "then": "it reads '1 entry'",
+      "when": "the entry count line is read"
+    },
+    {
+      "given": "a year with more than one entry is selected",
+      "id": "AC8",
+      "then": "it reads 'N entries' where N is the count of visible entries for that year",
+      "when": "the entry count line is read"
+    },
+    {
+      "given": "'All years' is selected",
+      "id": "AC9",
+      "then": "it reads the total number of entries in the changelog using the existing singular/plural wording",
+      "when": "the entry count line is read"
+    },
+    {
+      "given": "the changelog data is empty",
+      "id": "AC10",
+      "then": "the filter shows only the 'All years' option, the entry count reads '0 entries', and the entry list is empty",
+      "when": "the page is rendered"
+    },
+    {
+      "given": "keyboard focus is on the year filter",
+      "id": "AC11",
+      "then": "the visible entry list and the entry count update to match, with no mouse interaction required",
+      "when": "the reader changes the selection using the keyboard alone"
+    },
+    {
+      "given": "an absolute date is shown for a visible entry",
+      "id": "AC12",
+      "then": "it is formatted as 'DD MMM YYYY' (for example '29 Aug 2026')",
+      "when": "the reader reads that date"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC12"
+      ],
+      "entry_points": [
+        "@/app/changelog/page",
+        "@/data/changelog.json"
+      ],
+      "path": "__tests__/changelog/ChangelogPage.test.tsx",
+      "source": "import { render, screen } from '@testing-library/react';\nimport ChangelogPage from '@/app/changelog/page';\n\njest.mock('@/data/changelog.json', () => ([\n  { title: 'Recent', description: 'r', date: '2026-08-29T00:00:00Z' },\n]));\n\ndescribe('ChangelogPage \u2014 DTS-04 date formatting', () => {\n  it('renders absolute dates as DD MMM YYYY', async () => {\n    const ui = await ChangelogPage();\n    render(ui);\n    // 2026-08-29 must render as '29 Aug 2026' somewhere on the page.\n    expect(screen.getByText(/29 Aug 2026/)).toBeInTheDocument();\n  });\n});"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The `date` field on every changelog entry is an ISO-8601 string whose first four characters are the year, so year extraction is `entry.date.slice(0, 4)` without needing a Date parse.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The visible 'Year:' label is a sibling `<label htmlFor>` associated with the `<select>` for click-to-focus; the `aria-label` on the `<select>` overrides for the accessible name.",
+      "confidence": "medium"
+    },
+    {
+      "assumption": "The filter control belongs immediately after the entry count `<p>` and before `<ChangelogList>`, inside the new client wrapper.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [
+    {
+      "items": [
+        "Add ChangelogFilteredList client component owning selectedYear state",
+        "Add YearFilter client component (labelled <select>)",
+        "Move the entry count paragraph into ChangelogFilteredList so it tracks the visible count",
+        "Swap app/changelog/page.tsx to render <ChangelogFilteredList>",
+        "Add ChangelogFilteredList and YearFilter tests; update ChangelogPage tests"
+      ],
+      "size": "small",
+      "title": "Year filter and filtered list"
+    }
+  ],
+  "clarified_description": "The changelog page currently lists every entry in one long scroll. A reader looking for when something shipped has no way to narrow the view. This change adds a year filter above the entry list: a native `<select>` control with a visible 'Year:' label and an 'All years' default option. The option list is derived from the entries themselves, newest year first, so it never offers a year with no entries and picks up new years automatically as they are added. Selecting a year filters the list in place \u2014 no navigation, no URL change, purely client-side component state. The entry count beneath the heading reflects what is currently visible: 'All years' shows the total, and a selected year shows the count for that year.",
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "graph TD\n  A[app/changelog/page.tsx server] --> B[ChangelogFilteredList client]\n  B --> C[YearFilter client]\n  B --> D[Entry count paragraph]\n  B --> E[ChangelogList]\n  E --> F[ChangelogEntry]\n  G[data/changelog.json] --> A",
+    "title": "How the pieces fit"
+  },
+  "constraints": [
+    {
+      "detail": "`app/changelog/page.tsx` is a server component; any `useState`-based interactivity must live in a `'use client'` child. The filter and its state cannot be added to the page file itself.",
+      "kind": "integration"
+    },
+    {
+      "detail": "`ChangelogList` receives entries pre-sorted newest-first; the filtering step must preserve that order.",
+      "kind": "integration"
+    },
+    {
+      "detail": "Filter selection updates state locally in a single client component and re-renders only the filtered list; no network request, no navigation, no revalidation.",
+      "kind": "performance"
+    },
+    {
+      "detail": "Next.js 16.2.6 is beyond training-data cutoff; `AGENTS.md` directs implementors to read `node_modules/next/dist/docs/` before writing code. Client-component directive rules may differ from earlier Next.js versions.",
+      "kind": "other"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [
+    "Whether YearFilter and ChangelogFilteredList are two files or one is left to the engineer; two is proposed because it keeps the filter testable in isolation, but a single file is acceptable if the engineer prefers it.",
+    "The exact Tailwind classes for the <select> and its <label> are left to the engineer, provided they match the surrounding zinc palette and dark-mode treatment already used on the page."
+  ],
+  "feature_id": "39b16ac3-2441-4189-9449-4e8131996150",
+  "flows": [
+    {
+      "kind": "flowchart",
+      "source": "graph TD\n  A[Page load] --> B[selectedYear = null 'All years']\n  B --> C[Render filter, count, all entries]\n  C --> D{Reader changes selection}\n  D -->|specific year Y| E[selectedYear = Y]\n  D -->|All years| F[selectedYear = null]\n  E --> G[Filter entries where date starts with Y]\n  F --> H[Use all entries]\n  G --> I[Update count and list in place, no navigation]\n  H --> I",
+      "title": "Selecting a year updates the list in place"
+    }
+  ],
+  "must": [
+    "The system shall render a year filter control above the changelog entry list and below the entry count line.",
+    "The system shall render the year filter as a native HTML `<select>` element.",
+    "The system shall label the year filter with a visible 'Year:' label and an `aria-label` of 'Filter entries by year'.",
+    "The system shall include an 'All years' option in the year filter and select it by default on initial render.",
+    "The system shall derive the list of year options from the dates of the entries in `data/changelog.json` at render time, with no hardcoded years.",
+    "The system shall order the year options newest year first, immediately after the 'All years' option.",
+    "The system shall list each year at most once in the filter, even when multiple entries share that year.",
+    "WHEN the user selects 'All years' the system shall display every entry in the changelog.",
+    "WHEN the user selects a specific year the system shall display only entries whose date falls in that year.",
+    "WHEN the user changes the selected year the system shall update the visible entry list in place without navigating or changing the URL.",
+    "The system shall update the entry count line to reflect the number of entries currently visible after any filter change, using the existing singular/plural wording ('1 entry' / 'N entries').",
+    "The system shall preserve the newest-first ordering of entries within any filtered view.",
+    "The system shall keep the year filter fully operable by keyboard, using native `<select>` semantics.",
+    "The system shall expose the year filter to assistive technologies with an accessible name of 'Filter entries by year'."
+  ],
+  "open_questions": [],
+  "outcome": "Readers can narrow the changelog to a single year using a keyboard-accessible dropdown above the entry list, and the entry count reflects what they are seeing.",
+  "rationale": "The changelog page is a server component today, and both filtering and the count-that-tracks-visible-entries are client concerns. The natural seam is a new `'use client'` wrapper (`ChangelogFilteredList`) that owns the `selectedYear` state, derives the year list from its input entries, filters before passing to the existing `ChangelogList`, and renders both the filter and the count. Moving the count into that wrapper is required by the decision that it reflects the visible set \u2014 the server page cannot compute that.\n\nA native `<select>` was chosen over a button group because it is keyboard- and screen-reader-accessible without custom ARIA wiring, matches 'one year at a time', and is the lowest-risk shape given no existing precedent in this codebase for a segmented control. `CopyButton` and `ThemeToggle` are the precedents for a small `useState`-based client component and set the pattern.\n\nDeriving years from the data (rather than hardcoding) is called out both as a requirement and as its own acceptance criterion because it is the behaviour that guarantees the filter stays correct as the changelog grows \u2014 this is the discriminating property worth a dedicated test (DTI-01).\n\nThe empty and single-year cases are named explicitly (AC7, AC10) because '1 entry' vs 'N entries' and the zero-entry edge are the boundaries that get shipped wrong. The date-format criterion (AC12) applies DTS-04 to the existing entry render path, which is unchanged by this feature but re-covered because the filtered view still shows those dates.",
+  "risks": [
+    {
+      "mitigation": "Update or migrate the count-related assertions from __tests__/changelog/ChangelogPage.test.tsx into __tests__/changelog/ChangelogFilteredList.test.tsx as part of the same change.",
+      "reference": null,
+      "severity": "low",
+      "title": "Existing ChangelogPage tests break when the entry count moves"
+    },
+    {
+      "mitigation": "Rely on the existing ISO-8601 convention in data/changelog.json (validated by existing entries) and cover with a test that includes multiple years and multiple entries per year.",
+      "reference": null,
+      "severity": "low",
+      "title": "Year extraction from date strings misreads a non-ISO date"
+    },
+    {
+      "mitigation": "Use a native <select> now; document in swe_constraints that URL state and custom listbox behaviour are out of scope.",
+      "reference": null,
+      "severity": "low",
+      "title": "A future custom-styled control could regress accessibility"
+    }
+  ],
+  "rollout": null,
+  "schema_version": 7,
+  "should": [
+    "The system should style the year filter using the existing zinc Tailwind palette so it visually matches the surrounding page chrome.",
+    "WHEN no entries exist the system should render the filter with only the 'All years' option and a zero entry count, rather than hiding the control."
+  ],
+  "standards_applied": [
+    {
+      "applies": true,
+      "criteria": [
+        "AC12"
+      ],
+      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
+      "why_not": "This change is read-only and performs no database writes; the changelog is served from a static JSON file."
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC7",
+        "AC8"
+      ],
+      "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC12"
+      ],
+      "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+      "why_not": "The filter surfaces year numbers derived from entry dates only; no entry titles, descriptions, or work-tracking references are added or altered by this change."
+    }
+  ],
+  "swe_constraints": [
+    "The new components must begin with `'use client'` on line 1, matching the CopyButton and Tooltip precedents.",
+    "Year extraction must come from the entry `date` string, not from a hardcoded array.",
+    "The filter's option order is 'All years' first, then years in descending numeric order.",
+    "Preserve the newest-first order of entries inside any filtered view \u2014 do not re-sort in the wrapper.",
+    "Match the existing muted-text styling of the entry count paragraph when the count moves into ChangelogFilteredList (Tailwind zinc palette with dark: prefix, as already used in app/changelog/page.tsx).",
+    "The visible 'Year:' label is a `<label htmlFor>` associated with the `<select id>`; the `aria-label` 'Filter entries by year' is on the `<select>` itself.",
+    "No URL state: do not read or write `useSearchParams`, `useRouter.push`, or any history API for the selected year.",
+    "Props are typed with a local TypeScript interface defined in the same file, matching repo convention.",
+    "Do not alter `data/changelog.json`, `ChangelogEntry.tsx`, or the `ChangelogEntryData` type.",
+    "Read the relevant guide in `node_modules/next/dist/docs/` before writing client/server boundary code \u2014 Next.js 16.2.6 conventions differ from earlier versions."
+  ],
+  "touches": [
+    {
+      "exists": false,
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "reason": "New client component that owns the selected-year state, derives the year list, filters entries, and renders the filter, the count and the existing ChangelogList."
+    },
+    {
+      "exists": false,
+      "path": "components/changelog/YearFilter.tsx",
+      "reason": "New presentational client component for the labelled <select>; separated so it can be tested in isolation and reused. Placement in components/changelog/ matches the co-location convention."
+    },
+    {
+      "exists": true,
+      "path": "app/changelog/page.tsx",
+      "reason": "Replace the direct render of <ChangelogList> and the total-only entry count paragraph with <ChangelogFilteredList entries={entries} />, so the count and list are driven by the same client state."
+    },
+    {
+      "exists": false,
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx",
+      "reason": "New tests covering year derivation, default state, filtering behaviour, count updates, empty state, and keyboard interaction. Mirrors the existing __tests__/changelog/ pattern."
+    },
+    {
+      "exists": false,
+      "path": "__tests__/changelog/YearFilter.test.tsx",
+      "reason": "New tests covering the filter's label, accessible name, option order and change events in isolation from the list."
+    },
+    {
+      "exists": true,
+      "path": "__tests__/changelog/ChangelogPage.test.tsx",
+      "reason": "The page no longer renders the entry count paragraph directly; existing assertions on the count's presence and Tailwind classes under the <h1> must be updated (or moved to the ChangelogFilteredList tests)."
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "A year filter is visible above the entry list with 'All years' selected by default",
+        "Selecting a year hides entries from other years without reloading the page",
+        "The entry count updates to reflect what I can currently see"
+      ],
+      "references": [],
+      "role": "changelog reader",
+      "so_that": "I can quickly find when a change shipped without scrolling the whole page",
+      "want": "to filter the changelog to a single year"
+    },
+    {
+      "criteria": [
+        "Focus reaches the filter via Tab and the selection changes via native <select> keys",
+        "The filter's accessible name is 'Filter entries by year'"
+      ],
+      "references": [],
+      "role": "keyboard or screen-reader user",
+      "so_that": "I can use the filter without a mouse or visual context",
+      "want": "to change the year using only my keyboard and hear a meaningful label"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Find when a specific feature or change shipped without scrolling the entire changelog",
+        "See at a glance how many things shipped in a given year"
+      ],
+      "name": "Changelog reader",
+      "pain_points": [
+        "Long changelog forces continuous scrolling to locate a date",
+        "No way to scope the view to a period of interest"
+      ]
+    },
+    {
+      "jobs_to_be_done": [
+        "Operate the changelog filter without a mouse",
+        "Understand what the filter does and what is currently selected via assistive tech"
+      ],
+      "name": "Keyboard / screen-reader user",
+      "pain_points": [
+        "Custom UI controls often ship without full keyboard support or accessible names"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": "What shipped, newest first",
+            "text": "Changelog",
+            "type": "header"
+          },
+          {
+            "emphasis": "muted",
+            "text": "12 entries",
+            "type": "text"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "muted",
+                "text": "Options: All years, 2026, 2025, 2024 (newest first, derived from entries)",
+                "type": "text"
+              }
+            ],
+            "title": "Year: [ All years \u25be ]",
+            "type": "card"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "Entry title and description",
+                "type": "text"
+              }
+            ],
+            "title": "Entry \u2014 29 Aug 2026",
+            "type": "card"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "Entry title and description",
+                "type": "text"
+              }
+            ],
+            "title": "Entry \u2014 15 Aug 2026",
+            "type": "card"
+          }
+        ],
+        "title": "Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Changelog page with year filter"
+    }
+  ],
+  "wont": [
+    "The system will not persist the selected year across page loads.",
+    "The system will not reflect the selected year in the URL as a query parameter or path segment.",
+    "The system will not support selecting multiple years at once.",
+    "The system will not add a month, tag, or free-text search filter.",
+    "The system will not change the shape of `data/changelog.json` or the `ChangelogEntryData` type."
+  ]
+}

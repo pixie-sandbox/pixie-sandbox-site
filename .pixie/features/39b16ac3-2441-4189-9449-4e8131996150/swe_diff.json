@@ -1,0 +1,121 @@
+{
+  "branch": "pixie/39b16ac3-2441-4189-9449-4e8131996150",
+  "decisions_log": [
+    {
+      "decision": "Two separate files (YearFilter.tsx and ChangelogFilteredList.tsx) rather than one combined file.",
+      "rationale": "Keeps YearFilter testable in isolation (AC1 label/accessible-name assertions run without needing filtering state), matches the deferred-decision preference stated in the design, and follows the repo pattern of small, focused components."
+    },
+    {
+      "decision": "Used getUTCFullYear() for year extraction rather than getFullYear().",
+      "rationale": "All dates in changelog.json are ISO 8601 UTC strings (e.g. '2026-08-29T00:00:00Z'). Using getFullYear() would produce timezone-offset results in environments where the host is behind UTC, misassigning dates near midnight. getUTCFullYear() is consistent regardless of runtime timezone."
+    },
+    {
+      "decision": "Entry count paragraph moved from the server ChangelogPage header into ChangelogFilteredList.",
+      "rationale": "The spec requires the count to reflect the number of currently visible entries after any filter change. A server component cannot hold that state. Moving the count into ChangelogFilteredList is the only way to keep it in sync with filtered.length. The existing ChangelogPage tests all pass because ChangelogFilteredList is a child of ChangelogPage and its rendered text is still found by the test queries."
+    },
+    {
+      "decision": "AC4 (new years picked up automatically with no code change) is verified by the year-derivation tests that use entries rather than hardcoded arrays; no dedicated AC4 test exists because AC4 is a property of the algorithm, not a separate observable state.",
+      "rationale": "Any test for AC2/AC3 that passes entries with years not pre-registered in the component already covers AC4's guarantee. Adding a dedicated test would re-test the same code path."
+    },
+    {
+      "decision": "AC12 (DTS-04 absolute date format 'DD MMM YYYY') is deferred; see deferred_questions.",
+      "rationale": "The SWE constraint prohibits altering ChangelogEntry.tsx. The absolute date in that component is formatted as 'August 29, 2026' (en-US long month). Making AC12 pass would require changing formatAbsoluteDate in ChangelogEntry.tsx, which is explicitly out of scope."
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "AC12 is not covered. The DTS-04 standard requires absolute dates formatted as 'DD MMM YYYY' (e.g. '29 Aug 2026'). ChangelogEntry.tsx currently formats the tooltip date as 'August 29, 2026' via toLocaleDateString('en-US', { month: 'long' }). The SWE constraint 'Do not alter ChangelogEntry.tsx' makes it impossible to fix the format within this Feature's scope. To satisfy AC12, either: (a) lift the SWE constraint and update formatAbsoluteDate in ChangelogEntry.tsx to use { month: 'short', day: '2-digit' } with the 'en-GB' or 'en-AU' locale, or (b) cover it in a separate Feature targeting ChangelogEntry.tsx."
+    }
+  ],
+  "feature_id": "39b16ac3-2441-4189-9449-4e8131996150",
+  "files_changed": [
+    {
+      "change_kind": "added",
+      "path": "components/changelog/YearFilter.tsx",
+      "summary": "New 'use client' presentational component rendering a labelled native <select> for year filtering. Carries visible 'Year:' label (htmlFor), aria-label 'Filter entries by year' on the select, and an 'All years' default option followed by year options in the order supplied by the caller."
+    },
+    {
+      "change_kind": "added",
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "summary": "New 'use client' wrapper that owns selectedYear state (default null = All years), derives a sorted-unique year list from entry dates using getUTCFullYear(), filters entries before passing to ChangelogList, and renders the muted-zinc count paragraph, YearFilter, and ChangelogList in order."
+    },
+    {
+      "change_kind": "modified",
+      "path": "app/changelog/page.tsx",
+      "summary": "Replaced the ChangelogList import and render with ChangelogFilteredList. Removed the static entry count paragraph (it now lives in ChangelogFilteredList so it tracks the filtered set). The description paragraph and back-to-top link are unchanged."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/YearFilter.test.tsx",
+      "summary": "Tests for YearFilter in isolation: label/htmlFor association, aria-label, default 'All years' selection, option order, per-year value, empty-years edge case, onChange called with numeric year, onChange called with null for 'All years'."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx",
+      "summary": "Tests for ChangelogFilteredList: year list derivation newest-first, year uniqueness, default total count, all-entries default visibility, filtered count (plural/singular), filtered entry visibility, order preservation, restoring all entries, count styling, empty state, and keyboard-driven select change."
+    }
+  ],
+  "pr_ref": "stub://pr/39b16ac3-2441-4189-9449-4e8131996150",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": false,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "AC4 is covered implicitly by the AC2/AC3 tests (year list is data-driven; no hardcoded years in the component). AC12 has no test and is noted in deferred_questions: fixing the date format requires altering ChangelogEntry.tsx, which the SWE constraint prohibits. All other ACs (AC1\u2013AC11) have direct tests. All 157 tests pass (npm test --watchman=false --no-coverage). ESLint and tsc --noEmit both clean."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/YearFilter.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/YearFilter.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/YearFilter.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC11",
+      "path": "__tests__/changelog/YearFilter.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC6",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC7",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC8",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC9",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC10",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC11",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx"
+    }
+  ]
+}
