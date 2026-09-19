@@ -4,6 +4,7 @@ type ChangelogEntry = {
   title: string;
   description: string;
   date: string;
+  breaking?: boolean;
 };
 
 const entries = changelog as ChangelogEntry[];
@@ -62,5 +63,13 @@ describe("data/changelog.json", () => {
 
   it("AC3: contains a Custom 404 Page entry", () => {
     expect(entries.some((e) => e.title === "Custom 404 Page")).toBe(true);
+  });
+
+  it("breaking field, when present, is a boolean", () => {
+    for (const entry of entries) {
+      if ("breaking" in entry) {
+        expect(typeof (entry as ChangelogEntry).breaking).toBe("boolean");
+      }
+    }
   });
 });

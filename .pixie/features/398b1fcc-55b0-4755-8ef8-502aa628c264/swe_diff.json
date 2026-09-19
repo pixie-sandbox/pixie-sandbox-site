@@ -1,0 +1,105 @@
+{
+  "branch": "pixie/398b1fcc-55b0-4755-8ef8-502aa628c264",
+  "decisions_log": [
+    {
+      "decision": "Breaking pill renders visible 'Breaking' text via aria-hidden span alongside a sr-only 'Breaking change:' span placed before the h2 in DOM order.",
+      "rationale": "The sr-only span gives screen readers the full accessible text 'Breaking change:' before the title; the aria-hidden span provides the concise visual label. getNodeText in testing-library only checks direct text nodes, so the sr-only span is the unique match for /breaking change:/i in tests, avoiding ambiguous multi-element matches."
+    },
+    {
+      "decision": "Amber pill uses bg-amber-100/text-amber-800 (light) and bg-amber-900/40/text-amber-300 (dark).",
+      "rationale": "Estimated contrast ratios: light ~7.5:1, dark ~9.5:1 \u2014 both exceed the WCAG 2.1 AA threshold of 4.5:1 for small text. Visually distinct from the muted zinc-400/500 date and reading-time styling."
+    },
+    {
+      "decision": "AC6 RSS test uses matchAll to isolate individual <item> elements before asserting, instead of a cross-item greedy regex.",
+      "rationale": "The design.json suggested regex matched from the first <item> to the Copy tweak </item>, causing the breaking item content to appear in the match. Per-item matching with matchAll is more robust."
+    },
+    {
+      "decision": "AC7\u2013AC11 (sandbox-changelog-api criteria) are not implemented here \u2014 this is the site-only repository.",
+      "rationale": "The task.md explicitly scopes work to this repository. The API changes belong in a separate run against sandbox-changelog-api."
+    },
+    {
+      "decision": "Both type declarations (ChangelogEntryData in the component and ChangelogEntry in the RSS route) remain separate \u2014 no consolidation into a shared module.",
+      "rationale": "The design marks consolidation as a deferred decision out of scope for this feature. Both are updated independently per the SWE constraints."
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "AC7\u2013AC11 are not covered in this repository. They describe sandbox-changelog-api behaviour (breaking normalisation, ?breaking=true filter, 400 on other values, empty-list 200). Those changes must be implemented in a separate run against the sandbox-changelog-api repository."
+    },
+    {
+      "blocker": false,
+      "question": "AC10 (existing entries byte-identical after merge) is structural/integration: it can be verified by diff, not a unit test. No new test is added for it; the existing changelog-data tests continue asserting the four known entries are present and their fields match. The constraint is upheld \u2014 data/changelog.json was not modified."
+    },
+    {
+      "blocker": false,
+      "question": "npm run build fails with a Google Fonts network error (next/font cannot reach fonts.googleapis.com in this offline environment). This is a pre-existing infrastructure limitation unrelated to the feature changes; lint and tests pass."
+    }
+  ],
+  "feature_id": "398b1fcc-55b0-4755-8ef8-502aa628c264",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/changelog/ChangelogEntry.tsx",
+      "summary": "Added `breaking?: boolean` to ChangelogEntryData type; rendered an amber Breaking pill with sr-only 'Breaking change:' text in DOM order before the h2 title when breaking is true."
+    },
+    {
+      "change_kind": "modified",
+      "path": "app/changelog.xml/route.ts",
+      "summary": "Added `breaking?: boolean` to the local ChangelogEntry type; emits '[Breaking] ' prefix on <title> and <category>breaking</category> element inside each <item> whose entry has breaking===true."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog-data.test.ts",
+      "summary": "Extended data-shape test to update the local type to include `breaking?: boolean` and added a test that validates the field is boolean when present."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/ChangelogEntry.breaking.test.tsx",
+      "summary": "New test file covering AC1, AC2, AC3, and AC12: Breaking pill rendered when breaking:true; no pill when absent/false; 'Breaking change:' precedes title in textContent; each breaking entry gets its own pill."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog-xml-route.breaking.test.ts",
+      "summary": "New test file covering AC4, AC5, AC6: [Breaking] prefix on RSS title for breaking entry; <category>breaking</category> present in breaking item; non-breaking entry has neither prefix nor category."
+    }
+  ],
+  "pr_ref": "stub://pr/398b1fcc-55b0-4755-8ef8-502aa628c264",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "AC7\u2013AC11 belong to sandbox-changelog-api (separate repo). AC1\u2013AC6 and AC12 are fully implemented and tested. AC10 is verified by the unchanged data/changelog.json file. All 174 tests pass. Lint clean. Build network failure is pre-existing and unrelated to this change."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/ChangelogEntry.breaking.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/ChangelogEntry.breaking.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/ChangelogEntry.breaking.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC12",
+      "path": "__tests__/changelog/ChangelogEntry.breaking.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/changelog-xml-route.breaking.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/changelog-xml-route.breaking.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC6",
+      "path": "__tests__/changelog-xml-route.breaking.test.ts"
+    }
+  ]
+}
