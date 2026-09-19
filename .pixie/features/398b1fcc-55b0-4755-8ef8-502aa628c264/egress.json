@@ -1,0 +1,39 @@
+{
+  "allowlist": [
+    "registry.npmjs.org"
+  ],
+  "description": "1 host(s) reachable: registry.npmjs.org. Enforced at the kernel: everything else fails to connect, including a raw socket. Always allowed: localhost, 127.0.0.1, ::1, api.anthropic.com, platform.claude.com.",
+  "destinations": {
+    "allowed": [
+      {
+        "attempts": 19,
+        "destination": "api.anthropic.com:443"
+      },
+      {
+        "attempts": 17,
+        "destination": "registry.npmjs.org:443"
+      }
+    ],
+    "denied": [
+      {
+        "attempts": 15,
+        "destination": "http-intake.logs.us5.datadoghq.com:443"
+      },
+      {
+        "attempts": 2,
+        "destination": "fonts.googleapis.com:443"
+      },
+      {
+        "attempts": 1,
+        "destination": "eu-central-1-1.aws.cloud2.influxdata.com:443"
+      },
+      {
+        "attempts": 1,
+        "destination": "downloads.claude.ai:443"
+      }
+    ],
+    "truncated": false
+  },
+  "enforcement": "contained",
+  "filesystem": "contained"
+}
