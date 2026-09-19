@@ -33,9 +33,9 @@ describe('ChangelogFilteredList — year list derivation (AC2, AC3, AC4)', () =>
     const select = screen.getByRole('combobox', { name: 'Filter entries by year' });
     const options = within(select).getAllByRole('option');
     const yearOptions = options.filter((o) => o.getAttribute('value') !== '');
-    const yearTexts = yearOptions.map((o) => o.textContent);
-    expect(yearTexts.filter((t) => t === '2026')).toHaveLength(1);
-    expect(yearTexts.filter((t) => t === '2025')).toHaveLength(1);
+    const yearTexts = yearOptions.map((o) => o.textContent ?? '');
+    expect(yearTexts.filter((t) => t.startsWith('2026'))).toHaveLength(1);
+    expect(yearTexts.filter((t) => t.startsWith('2025'))).toHaveLength(1);
   });
 });
 

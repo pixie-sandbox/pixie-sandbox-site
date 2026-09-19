@@ -21,11 +21,19 @@ interface ChangelogFilteredListProps {
 export default function ChangelogFilteredList({ entries }: ChangelogFilteredListProps) {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
-  // Derive sorted-unique year list from entries, newest year first.
+  // Derive per-year counts and sorted-unique year list from entries, newest year first.
   // Year extraction relies on the ISO 8601 date convention in data/changelog.json.
-  const years = Array.from(
-    new Set(entries.map((e) => new Date(e.date).getUTCFullYear()))
-  ).sort((a, b) => b - a);
+  // Counts are derived inline from the same entries array to stay in sync with the list.
+  const yearCountMap: Record<number, number> = {};
+  for (const e of entries) {
+    const y = new Date(e.date).getUTCFullYear();
+    yearCountMap[y] = (yearCountMap[y] ?? 0) + 1;
+  }
+  const years = Object.keys(yearCountMap)
+    .map(Number)
+    .sort((a, b) => b - a)
+    .map((year) => ({ year, count: yearCountMap[year] }));
+  const totalCount = entries.length;
 
   // Filter preserves the newest-first order supplied by the server page.
   const filtered =
@@ -43,6 +51,7 @@ export default function ChangelogFilteredList({ entries }: ChangelogFilteredList
       </p>
       <YearFilter
         years={years}
+        totalCount={totalCount}
         selected={selectedYear}
         onChange={setSelectedYear}
       />

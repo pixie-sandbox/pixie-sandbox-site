@@ -1,0 +1,353 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "a changelog with four entries all dated in 2026",
+      "id": "AC1",
+      "then": "the year filter contains an option whose text is `2026 (4)` and a default option whose text is `All years (4)`",
+      "when": "the changelog page renders"
+    },
+    {
+      "given": "a changelog with two entries in 2026 and one entry in 2025",
+      "id": "AC2",
+      "then": "the year filter contains an option whose text is `2026 (2)`, an option whose text is `2025 (1)`, and a default option whose text is `All years (3)`, with the year options in newest-first order",
+      "when": "the changelog page renders"
+    },
+    {
+      "given": "a changelog with exactly one entry in 2020",
+      "id": "AC3",
+      "then": "the year filter contains an option whose text is `2020 (1)` (no `entries` / `entry` word, no singular/plural handling)",
+      "when": "the changelog page renders"
+    },
+    {
+      "given": "a changelog with no entries",
+      "id": "AC4",
+      "then": "the year filter contains only the default option, whose text is `All years (0)`, and no year options",
+      "when": "the changelog page renders"
+    },
+    {
+      "given": "the year filter is rendered with any set of entries",
+      "id": "AC5",
+      "then": "the number in parentheses on the selected year's option equals the number of entries rendered in the list below",
+      "when": "a user selects a year from the filter and the list re-renders"
+    },
+    {
+      "given": "the year filter is rendered",
+      "id": "AC6",
+      "then": "the accessible name of the option is the same string as its visible text (the count is part of the option's text content, not a sibling element or ARIA override)",
+      "when": "assistive technology reads a year option or the default option"
+    },
+    {
+      "given": "the year filter is rendered",
+      "id": "AC7",
+      "then": "the control is a native `<select id=\"year-filter\">` with `aria-label=\"Filter entries by year\"`, associated with a `<label htmlFor=\"year-filter\">`, and each option is a native `<option>` element with no `aria-label`, `aria-describedby`, or nested markup",
+      "when": "the DOM is inspected"
+    },
+    {
+      "given": "a changelog with two entries in 2026 and one entry in 2025",
+      "id": "AC8",
+      "then": "the count paragraph above the `<select>` still reads `3 entries` (its existing behaviour is unchanged by this feature)",
+      "when": "the changelog page renders and no year has been selected"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC6",
+        "AC7"
+      ],
+      "entry_points": [
+        "@/components/changelog/YearFilter"
+      ],
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx",
+      "source": "import '@testing-library/jest-dom'\nimport { render, screen, within } from '@testing-library/react'\nimport YearFilter from '@/components/changelog/YearFilter'\n\ndescribe('YearFilter \u2013 count in option text', () => {\n  it('AC1: renders `2026 (4)` and `All years (4)` for four entries all in 2026', () => {\n    render(\n      <YearFilter\n        years={[{ year: 2026, count: 4 }]}\n        totalCount={4}\n        selected={null}\n        onChange={() => {}}\n      />,\n    )\n    const select = screen.getByLabelText(/Filter entries by year/i) as HTMLSelectElement\n    const options = within(select).getAllByRole('option') as HTMLOptionElement[]\n    const texts = options.map((o) => o.textContent)\n    expect(texts).toEqual(['All years (4)', '2026 (4)'])\n  })\n\n  it('AC2: renders `2026 (2)`, `2025 (1)`, `All years (3)` newest-first', () => {\n    render(\n      <YearFilter\n        years={[\n          { year: 2026, count: 2 },\n          { year: 2025, count: 1 },\n        ]}\n        totalCount={3}\n        selected={null}\n        onChange={() => {}}\n      />,\n    )\n    const select = screen.getByLabelText(/Filter entries by year/i) as HTMLSelectElement\n    const options = within(select).getAllByRole('option') as HTMLOptionElement[]\n    expect(options.map((o) => o.textContent)).toEqual([\n      'All years (3)',\n      '2026 (2)',\n      '2025 (1)',\n    ])\n  })\n\n  it('AC3: renders `2020 (1)` for a year with exactly one entry (no singular/plural word)', () => {\n    render(\n      <YearFilter\n        years={[{ year: 2020, count: 1 }]}\n        totalCount={1}\n        selected={null}\n        onChange={() => {}}\n      />,\n    )\n    const select = screen.getByLabelText(/Filter entries by year/i) as HTMLSelectElement\n    const opt = within(select).getByRole('option', { name: /^2020 \\(1\\)$/ })\n    expect(opt).toBeInTheDocument()\n    expect(opt.textContent).not.toMatch(/entry|entries/i)\n  })\n\n  it('AC4: renders only `All years (0)` when there are no entries', () => {\n    render(\n      <YearFilter\n        years={[]}\n        totalCount={0}\n        selected={null}\n        onChange={() => {}}\n      />,\n    )\n    const select = screen.getByLabelText(/Filter entries by year/i) as HTMLSelectElement\n    const options = within(select).getAllByRole('option') as HTMLOptionElement[]\n    expect(options).toHaveLength(1)\n    expect(options[0].textContent).toBe('All years (0)')\n  })\n\n  it('AC6: option accessible name equals its visible text (no aria-label / aria-describedby override)', () => {\n    render(\n      <YearFilter\n        years={[{ year: 2026, count: 2 }]}\n        totalCount={2}\n        selected={null}\n        onChange={() => {}}\n      />,\n    )\n    const select = screen.getByLabelText(/Filter entries by year/i) as HTMLSelectElement\n    const options = within(select).getAllByRole('option') as HTMLOptionElement[]\n    for (const opt of options) {\n      expect(opt).not.toHaveAttribute('aria-label')\n      expect(opt).not.toHaveAttribute('aria-describedby')\n      expect(opt.children.length).toBe(0)\n      // accessible name for a native <option> is its text content\n      expect(opt.getAttribute('aria-label')).toBeNull()\n    }\n  })\n\n  it('AC7: control is a native <select id=\"year-filter\"> with the existing aria-label and label association', () => {\n    render(\n      <YearFilter\n        years={[{ year: 2026, count: 1 }]}\n        totalCount={1}\n        selected={null}\n        onChange={() => {}}\n      />,\n    )\n    const select = screen.getByLabelText(/Filter entries by year/i) as HTMLSelectElement\n    expect(select.tagName).toBe('SELECT')\n    expect(select.id).toBe('year-filter')\n    expect(select.getAttribute('aria-label')).toBe('Filter entries by year')\n  })\n})"
+    },
+    {
+      "covers": [
+        "AC5",
+        "AC8"
+      ],
+      "entry_points": [
+        "@/components/changelog/ChangelogFilteredList"
+      ],
+      "path": "__tests__/changelog/ChangelogFilteredList.counts.test.tsx",
+      "source": "import '@testing-library/jest-dom'\nimport { render, screen, within } from '@testing-library/react'\nimport userEvent from '@testing-library/user-event'\nimport ChangelogFilteredList from '@/components/changelog/ChangelogFilteredList'\n\nconst entries = [\n  { title: 'a', description: 'x', date: '2026-06-01' },\n  { title: 'b', description: 'x', date: '2026-01-10' },\n  { title: 'c', description: 'x', date: '2025-11-30' },\n]\n\ndescribe('ChangelogFilteredList \u2013 option counts agree with list', () => {\n  it('AC5: selecting `2026 (2)` renders exactly 2 entries in the list', async () => {\n    const user = userEvent.setup()\n    render(<ChangelogFilteredList entries={entries} />)\n    const select = screen.getByLabelText(/Filter entries by year/i) as HTMLSelectElement\n    const opt2026 = within(select).getByRole('option', { name: /^2026 \\(2\\)$/ }) as HTMLOptionElement\n    await user.selectOptions(select, opt2026)\n    const articles = screen.getAllByRole('article')\n    expect(articles).toHaveLength(2)\n  })\n\n  it('AC8: the existing count paragraph above the filter still reads `3 entries` with no year selected', () => {\n    render(<ChangelogFilteredList entries={entries} />)\n    expect(screen.getByText(/^3 entries$/)).toBeInTheDocument()\n  })\n})"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The compact form `2026 (4)` is read acceptably by common screen readers with typical punctuation settings (as `2026, 4` or similar). The spec locks the visible text; per-AT verbalisation is out of scope.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "Year options remain sorted newest-first (existing behaviour of `ChangelogFilteredList`'s years derivation). The count addition does not alter sort.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [
+    {
+      "items": [
+        "Update `YearFilter` prop shape to `{ years: Array<{year, count}>, totalCount, selected, onChange }`",
+        "Render each year `<option>` with text `${year} (${count})`",
+        "Render the default `<option>` with text `All years (${totalCount})`",
+        "Derive per-year counts and totalCount in `ChangelogFilteredList` from the existing `entries` array",
+        "Update `__tests__/changelog/ChangelogFilteredList.test.tsx` line 37 strict-equality check to a substring match",
+        "Add tests for count-in-option-text behaviour and empty-state"
+      ],
+      "size": "small",
+      "title": "Add counts to year filter options"
+    }
+  ],
+  "clarified_description": "The changelog's year filter currently lists years as bare numbers, so a reader cannot tell a busy year from a quiet one without selecting it. This change appends a per-year entry count to each option in the compact form `2026 (4)`, and appends the total to the default option in the form `All years (4)`. Counts are derived from the same `entries` array that drives the list below the filter, so the numbers in the options always agree with what selecting the year displays. The count sits inside the `<option>` text content itself, so a screen reader hears it as part of the option rather than as a separate element. The control's existing keyboard behaviour is unchanged \u2014 it remains a native `<select>` with its existing `<label>` association and `aria-label`. The existing count paragraph above the filter (which says how many entries are currently shown for the active selection) is unchanged: it answers a different question and is kept as-is.",
+  "component_diagram": null,
+  "constraints": [
+    {
+      "detail": "The `entries` array passed into `ChangelogFilteredList` remains the single source of truth. Per-year counts and the total must be derived from that same array in the same render, not from any cached or precomputed side channel, so that the filter counts and the displayed list can never disagree.",
+      "kind": "integration"
+    },
+    {
+      "detail": "Accessibility: the count must be part of the `<option>`'s text content. An `aria-label` on an `<option>` replaces the visible text for AT and would create two truths that can drift; that pattern is disallowed for this feature.",
+      "kind": "other"
+    },
+    {
+      "detail": "Framework: Next.js 16.2.6 / React 19.2.4 breaking changes apply \u2014 read `node_modules/next/dist/docs/` before writing Next.js-specific code (per repository AGENTS.md). This change stays inside two existing client components and does not need new Next.js APIs.",
+      "kind": "other"
+    }
+  ],
+  "contracts": [
+    {
+      "definition": "`YearFilter` prop shape changes from `{ years: number[]; selected: number | null; onChange: (year: number | null) => void }` to `{ years: Array<{ year: number; count: number }>; totalCount: number; selected: number | null; onChange: (year: number | null) => void }`. Order of `years` is preserved (caller supplies newest-first).",
+      "kind": "api"
+    }
+  ],
+  "contributions_applied": [],
+  "data_changes": [
+    {
+      "change": "No change. The shape stored in `data/changelog.json` and shared with `pixie-sandbox/sandbox-changelog-api` is untouched.",
+      "entity": "changelog entry",
+      "migration_needed": false
+    }
+  ],
+  "data_model": [],
+  "deferred_decisions": [
+    "Whether to memoise the per-year count derivation with `useMemo` in `ChangelogFilteredList`. The engineer may add memoisation if profiling suggests it; the entry set is small (single-digit today) so a straight reduction is acceptable."
+  ],
+  "feature_id": "a2cb7267-30f2-4fd9-8d54-74801b923726",
+  "flows": [],
+  "must": [
+    "WHEN the changelog page renders the year filter the system shall display each year option as the year followed by a space, an opening parenthesis, the count of entries for that year, and a closing parenthesis (for example `2026 (4)`).",
+    "WHEN the changelog page renders the year filter the system shall display the default option as the literal text `All years`, a space, an opening parenthesis, the total count of entries across all years, and a closing parenthesis (for example `All years (4)`).",
+    "The system shall derive both per-year counts and the total count from the same `entries` array that is passed to the filtered list, so a selected year's option count equals the number of entries displayed for that year.",
+    "The system shall place the count inside the `<option>` element's text content, so that assistive technology reads the count as part of the option and not as a separate element.",
+    "The system shall preserve the existing `<label htmlFor=\"year-filter\">` association and the existing `aria-label=\"Filter entries by year\"` on the `<select>` control.",
+    "The system shall preserve the existing native `<select>` element and its keyboard operability; no ARIA roles, custom keyboard handlers, or non-native option markup shall be introduced.",
+    "IF the `entries` array is empty THEN the system shall render the default option as `All years (0)` and no year options.",
+    "The system shall continue to list only years that have at least one entry in the option list (years are derived from `entries`, so no zero-count year option can appear).",
+    "The system shall keep the existing count paragraph above the `<select>` unchanged in wording and singular/plural behaviour (it describes the currently displayed list, not the per-year totals)."
+  ],
+  "open_questions": [],
+  "outcome": "Readers can see how many entries each year has directly in the changelog's year filter, so a busy year and a quiet one are distinguishable without selecting them.",
+  "rationale": "**Format.** `2026 (4)` was chosen over spelled-out variants because the control's context (`<label>Year:</label>` + `aria-label=\"Filter entries by year\"`) already establishes what the number after each year is a count of, the parenthesised form is short enough to remain readable at any width, and it side-steps singular/plural entirely \u2014 `2020 (1)` is not wrong the way `2020 (1 entries)` would be.\n\n**Accessibility.** Putting the count in the `<option>`'s text content is the only mechanism that satisfies the brief's rule (\"as part of the option, not as a separate element\") without introducing ARIA that would either be ignored on `<option>` or would override the visible text. Every existing accessibility affordance on the control \u2014 the visible `<label>`, `aria-label` on the `<select>`, native keyboard operability \u2014 is preserved verbatim.\n\n**Prop shape.** `YearFilter` takes a single `years: Array<{year, count}>` plus `totalCount: number`. The alternative \u2014 parallel `years: number[]` and `yearCounts: Record<number, number>` \u2014 allows a year to appear without a count (or with the wrong count) if one map is updated and the other isn't. Coupling year and count in a single object element removes that failure mode.\n\n**Empty state.** `All years (0)` is emitted uniformly rather than falling back to the pre-change `All years` text, so the rule \"total appears beside the default option\" holds in every state, including when the list below is empty.\n\n**Existing count paragraph.** The `<p>` above the filter and the new option counts answer different questions \u2014 the paragraph reports how many entries are currently displayed for the active selection, the option counts report how many exist per year. Removing the paragraph would also drop its singular-handling for the one-entry case (`1 entry`), which is user-facing and settled behaviour. Kept as-is.",
+  "risks": [
+    {
+      "mitigation": "Update the line-37 strict-equality check `t === '2026'` to a substring match `t.startsWith('2026')` (or a regex) as part of the same change; covered by AC8 and the counts test.",
+      "reference": null,
+      "severity": "low",
+      "title": "Existing `ChangelogFilteredList` test breaks on unrelated assertion"
+    },
+    {
+      "mitigation": "Constraint: derive counts inline in `ChangelogFilteredList` from the same `entries` array used to derive the year set and to render the list. No cache, no precomputation. Enforced by AC5.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Count and displayed list drift if per-year counts are computed from a different source than the list"
+    }
+  ],
+  "rollout": null,
+  "schema_version": 7,
+  "should": [
+    "The system shall pass a single `years` array of `{year: number, count: number}` objects to `YearFilter` (rather than a parallel `years: number[]` and a separate `yearCounts` map), so a year and its count cannot drift apart."
+  ],
+  "standards_applied": [
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+      "why_not": "The years in the filter are calendar years (`2026`), not user-facing dates. DTS-04 governs absolute date and relative time formats (`09 Sep 2026`, `3 days ago`); a bare four-digit year in a filter option is neither, and no time-of-day or zone is involved."
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
+      "why_not": "This change is read-only display logic in a client component; it performs no database writes. There is no write result to inspect."
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC6",
+        "AC7",
+        "AC8"
+      ],
+      "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC6",
+        "AC7",
+        "AC8"
+      ],
+      "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+      "why_not": "The visible strings introduced by this change are a four-digit year, a space, and a count in parentheses (plus the literal `All years`). None of that copy is sourced from work-tracking descriptions and none of it can contain a project key like `PAY-1234`."
+    }
+  ],
+  "swe_constraints": [
+    "The `<option>` for a year must have text content exactly of the form `${year} (${count})` with a single ASCII space and standard ASCII parentheses \u2014 no non-breaking space, no en/em dash.",
+    "The default `<option>` must have text content exactly `All years (${total})` with the same spacing and punctuation.",
+    "No `aria-label`, `aria-describedby`, or nested elements inside any `<option>`. The option is text-only.",
+    "Preserve `<label htmlFor=\"year-filter\">Year:</label>` and `<select id=\"year-filter\" aria-label=\"Filter entries by year\">` exactly.",
+    "Derive counts inline in `ChangelogFilteredList` from the same `entries` array used to derive the year set; do not introduce a memoised cache or a module-level precomputation.",
+    "Both files remain `'use client'`. No server component or new data-fetching path.",
+    "No new dependencies; use only what is already in `package.json`.",
+    "Tailwind styling on the control and its label is unchanged; this is a text-content change inside existing markup."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/changelog/YearFilter.tsx",
+      "reason": "Accepts the new prop shape (`years: Array<{year, count}>`, `totalCount: number`) and embeds counts into each `<option>`'s text content."
+    },
+    {
+      "exists": true,
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "reason": "Derives per-year counts and the total from the same `entries` array it already uses, and passes them to `YearFilter` via the new props."
+    },
+    {
+      "exists": true,
+      "path": "__tests__/changelog/YearFilter.test.tsx",
+      "reason": "Adds tests for count-in-option-text behaviour and updates any existing option-text assertion that would need to reflect the count."
+    },
+    {
+      "exists": true,
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx",
+      "reason": "Line 37's strict-equality check `t === '2026'` will break once option text includes a count; updated to substring match. Adds tests confirming per-year and total counts appearing in options."
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "Each year option shows its year and its count as `YYYY (N)`",
+        "The default option shows `All years (N)` where N is the total across all years",
+        "Counts agree with what the list below shows when that year is selected"
+      ],
+      "references": [],
+      "role": "changelog reader",
+      "so_that": "I can tell at a glance which years had the most activity without having to select each in turn",
+      "want": "to see how many entries each year has in the year filter"
+    },
+    {
+      "criteria": [
+        "The option's accessible name is the same string as its visible text",
+        "No aria-label or aria-describedby is added to option elements",
+        "The control remains a native <select> with the existing label and aria-label"
+      ],
+      "references": [],
+      "role": "screen-reader user",
+      "so_that": "I hear the count as I move through the options and don't have to hunt for a separate element",
+      "want": "the entry count to be part of the option itself"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Scan the changelog to see when the project was most active",
+        "Narrow the list to a specific year"
+      ],
+      "name": "Changelog reader",
+      "pain_points": [
+        "Cannot tell a busy year from a quiet one without opening the filter and selecting each",
+        "Screen-reader users hear only the year, with no cue about how much is behind it"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": "4 entries",
+            "text": "Changelog",
+            "type": "header"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "Year:",
+                "type": "text"
+              },
+              {
+                "kind": "select",
+                "label": "Filter entries by year",
+                "placeholder": "All years (4) / 2026 (4)",
+                "type": "input"
+              },
+              {
+                "emphasis": "muted",
+                "text": "Counts inside each option are part of the option text, so screen readers announce them with the year.",
+                "type": "text"
+              }
+            ],
+            "title": "Year filter",
+            "type": "card"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "muted",
+                "text": "List of changelog entries, filtered by the selection above.",
+                "type": "text"
+              }
+            ],
+            "title": "Entries",
+            "type": "card"
+          }
+        ],
+        "title": "Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Year filter with counts"
+    }
+  ],
+  "wont": [
+    "The system will not apply singular/plural handling to the per-year count text; `2020 (1)` is the correct display for a year with one entry.",
+    "The system will not add an `aria-label`, `aria-describedby`, visually hidden span, or any other ARIA override to an `<option>` element; the visible text and the accessible name remain the same string.",
+    "The system will not remove or reword the existing count paragraph above the filter.",
+    "The system will not change the sort order or set of years shown (still newest-first, still derived from `entries`).",
+    "The system will not change the shape of the changelog entry data or the JSON at `data/changelog.json`."
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "branch": "pixie/a2cb7267-30f2-4fd9-8d54-74801b923726",
+  "decisions_log": [
+    {
+      "decision": "Used Array<{year, count}> prop shape for YearFilter (the 'Should' requirement) rather than parallel years: number[] + yearCounts map.",
+      "rationale": "Couples year and count in a single object element so they cannot drift apart. Matches the spec's 'Should' and the design's recommended prop shape."
+    },
+    {
+      "decision": "Derived yearCountMap with a plain for-of loop rather than a Set + sort chain.",
+      "rationale": "The constraint says derive inline from the same entries array; a simple loop produces the count map and the sorted unique-year list in one pass without introducing memoisation or module-level precomputation."
+    },
+    {
+      "decision": "Did not use useMemo for per-year count derivation.",
+      "rationale": "The design defers this decision to the engineer; the entry set is small (single-digit in production today) so a straight reduction is acceptable per the spec. No memoisation added."
+    },
+    {
+      "decision": "Replaced @testing-library/user-event in ChangelogFilteredList.counts.test.tsx with fireEvent.change.",
+      "rationale": "@testing-library/user-event is not in the project's package.json and the SWE constraints prohibit adding new dependencies. fireEvent.change is already used in the existing ChangelogFilteredList.test.tsx and is sufficient to assert AC5."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "a2cb7267-30f2-4fd9-8d54-74801b923726",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/changelog/YearFilter.tsx",
+      "summary": "Changed prop shape from years: number[] to years: Array<{year, count}> plus totalCount: number. Each <option> now renders '${year} (${count})' and the default renders 'All years (${totalCount})'. No ARIA overrides; <label> and aria-label preserved exactly."
+    },
+    {
+      "change_kind": "modified",
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "summary": "Replaced Set-based year derivation with an inline yearCountMap loop over entries, producing years: Array<{year, count}> sorted newest-first. Added totalCount = entries.length. Passes both to YearFilter. Counts come from the same entries array as the list."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog/YearFilter.test.tsx",
+      "summary": "Updated all YearFilter renders to pass the new years: Array<{year, count}> and totalCount props. Existing toHaveTextContent (substring) assertions still pass unchanged."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx",
+      "summary": "Fixed line-37 strict-equality check (t === '2026') to t.startsWith('2026') so it survives count-appended option text."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx",
+      "summary": "New test file covering AC1-AC4, AC6, AC7: exact option text format, empty state, no singular/plural word, no ARIA overrides on options, native select structure."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/ChangelogFilteredList.counts.test.tsx",
+      "summary": "New test file covering AC5 and AC8: option count equals rendered list length after selection; count paragraph above filter still shows total entries with no year selected."
+    }
+  ],
+  "pr_ref": "stub://pr/a2cb7267-30f2-4fd9-8d54-74801b923726",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 9 Must requirements implemented. All 8 ACs covered by tests (AC1-AC4, AC6, AC7 in YearFilter.countInOption.test.tsx; AC5, AC8 in ChangelogFilteredList.counts.test.tsx). 29 tests pass, lint clean, tsc --noEmit clean. No new dependencies added. Both files remain 'use client'. Counts derived inline from the same entries array. <option> elements are text-only with no ARIA overrides. Label and aria-label preserved exactly."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/changelog/ChangelogFilteredList.counts.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC6",
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC7",
+      "path": "__tests__/changelog/YearFilter.countInOption.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC8",
+      "path": "__tests__/changelog/ChangelogFilteredList.counts.test.tsx"
+    }
+  ]
+}
