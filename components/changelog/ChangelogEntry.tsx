@@ -7,6 +7,7 @@ export type ChangelogEntryData = {
   title: string;
   description: string;
   date: string; // ISO 8601
+  breaking?: boolean;
 };
 
 /**
@@ -68,6 +69,12 @@ export default function ChangelogEntry({ entry }: ChangelogEntryProps) {
     <article className="py-6 border-b border-black/[.08] dark:border-white/[.145] last:border-0">
       <header className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
         <div className="flex items-baseline gap-1.5">
+          {entry.breaking === true && (
+            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              <span className="sr-only">Breaking change: </span>
+              <span aria-hidden="true">Breaking</span>
+            </span>
+          )}
           <h2 id={slug} className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
             {entry.title}
           </h2>

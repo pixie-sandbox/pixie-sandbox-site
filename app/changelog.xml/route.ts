@@ -4,6 +4,7 @@ type ChangelogEntry = {
   title: string;
   description: string;
   date: string;
+  breaking?: boolean;
 };
 
 /** Escapes characters that are special in XML element content. */
@@ -18,14 +19,20 @@ export async function GET() {
   const entries = changelog as ChangelogEntry[];
 
   const items = entries
-    .map(
-      (entry) => `
+    .map((entry) => {
+      const titleText = entry.breaking === true
+        ? `[Breaking] ${escapeXml(entry.title)}`
+        : escapeXml(entry.title);
+      const categoryEl = entry.breaking === true
+        ? "\n      <category>breaking</category>"
+        : "";
+      return `
     <item>
-      <title>${escapeXml(entry.title)}</title>
+      <title>${titleText}</title>
       <description>${escapeXml(entry.description)}</description>
-      <pubDate>${entry.date}</pubDate>
-    </item>`
-    )
+      <pubDate>${entry.date}</pubDate>${categoryEl}
+    </item>`;
+    })
     .join("");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
