@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import changelog from "@/data/changelog.json";
 import ChangelogFilteredList from "@/components/changelog/ChangelogFilteredList";
 
@@ -28,7 +29,9 @@ export default function ChangelogPage() {
             A record of updates to this site.
           </p>
         </header>
-        <ChangelogFilteredList entries={entries} />
+        <Suspense>
+          <ChangelogFilteredList entries={entries} />
+        </Suspense>
         <div className="text-right mt-8">
           <a
             href="#changelog-heading"
