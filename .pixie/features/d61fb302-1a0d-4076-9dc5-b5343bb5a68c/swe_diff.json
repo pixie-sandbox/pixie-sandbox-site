@@ -1,0 +1,96 @@
+{
+  "branch": "pixie/d61fb302-1a0d-4076-9dc5-b5343bb5a68c",
+  "decisions_log": [
+    {
+      "decision": "TitleSearch.tsx placed at components/changelog/TitleSearch.tsx as a sibling to YearFilter.tsx",
+      "rationale": "The spec requires this exact path. It follows the established repo pattern of keeping each filter control in its own focused, testable file (per memory K and the design doc)."
+    },
+    {
+      "decision": "Empty-state message 'No entries match.' is shown for ALL cases where filtered.length === 0, including an empty entries prop (no entries in data at all)",
+      "rationale": "The spec says 'IF the combined filters match no entries THEN display No entries match.' \u2014 the combined filters include the implicit 'all years / all text' default, so an empty dataset also triggers it. The existing AC10 test was updated accordingly. The old behaviour (empty feed element) was inconsistent with the new empty-state requirement."
+    },
+    {
+      "decision": "The filter row uses a flex div in ChangelogFilteredList; YearFilter's own mb-4 wrapper div provides the bottom margin for the row",
+      "rationale": "Adding a second mb-4 on the parent container would double the bottom margin. Since YearFilter already carries mb-4 on its root div, the parent wrapper omits it to avoid duplication without modifying YearFilter.tsx."
+    },
+    {
+      "decision": "Escape-to-clear (the 'should' requirement) was not implemented in this change",
+      "rationale": "The design doc explicitly lists it as an engineer's choice deferred decision. With the 8 'must' acceptance criteria all covered and tests passing, this is a low-risk omission suitable for a follow-up."
+    },
+    {
+      "decision": "The \u00d7 clear button uses a raw glyph (\u00d7) rather than a Heroicon",
+      "rationale": "The design doc lists the visual affordance as an engineer's call. A raw glyph avoids any dependency on the Heroicons library (though it is already installed) and keeps the component self-contained."
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "The 'should' criterion (Escape-to-clear: focus stays in the input after Escape clears the value) is not covered by a test because the feature was not implemented in this change. The design doc marks it as an engineer's deferred decision. If it should be implemented, a follow-up task is needed."
+    }
+  ],
+  "feature_id": "d61fb302-1a0d-4076-9dc5-b5343bb5a68c",
+  "files_changed": [
+    {
+      "change_kind": "added",
+      "path": "components/changelog/TitleSearch.tsx",
+      "summary": "New 'use client' component with a visible 'Search' label, controlled text input, and a 'Clear search' \u00d7  button (rendered only when the input holds non-whitespace text). Styled to match YearFilter using the existing zinc/border/rounded/px-2/py-1/text-sm Tailwind classes."
+    },
+    {
+      "change_kind": "modified",
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "summary": "Added searchQuery useState; composed TitleSearch alongside YearFilter in a flex row; replaced the two-step year-only filter with a single combined AND filter (year + case-insensitive substring title match, whitespace-only treated as empty); renders 'No entries match.' in place of ChangelogList when the combined result is empty."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/title-search.test.tsx",
+      "summary": "New acceptance test file covering AC1\u2013AC8 end-to-end via ChangelogFilteredList. Uses a discriminating three-entry fixture (two 'dark' titles in different cases, one 2025 entry) to distinguish correct from plausible-wrong implementations for case-insensitivity, substring matching, AND combination, no-match state, clear control, and whitespace handling."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx",
+      "summary": "Updated AC10 empty-state test: the empty dataset now produces 'No entries match.' text and no feed element, matching the new ChangelogFilteredList behaviour."
+    }
+  ],
+  "pr_ref": "stub://pr/d61fb302-1a0d-4076-9dc5-b5343bb5a68c",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 8 acceptance criteria are covered by tests in __tests__/changelog/title-search.test.tsx. All 182 tests pass (npm test --watchman=false). Lint (eslint) and TypeScript (tsc --noEmit) both pass with no errors. No new npm runtime dependencies were introduced. The match logic is exactly title.toLowerCase().includes(query.trim().toLowerCase()) as required. The clear control is a real <button type='button'> with aria-label='Clear search'. The empty-state message is the exact string 'No entries match.' per AC5 and the spec."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC6",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC7",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC8",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    }
+  ]
+}

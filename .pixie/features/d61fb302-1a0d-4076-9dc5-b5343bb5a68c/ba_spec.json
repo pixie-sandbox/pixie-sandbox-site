@@ -1,0 +1,412 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "the changelog page is loaded with at least one entry",
+      "id": "AC1",
+      "then": "a text input with accessible name 'Search' and the existing year-filter control both appear above the entries list on the same row",
+      "when": "the page renders"
+    },
+    {
+      "given": "entries include titles 'Added dark mode', 'Improved DARK theme contrast' and 'Fixed login bug'",
+      "id": "AC2",
+      "then": "'Added dark mode' and 'Improved DARK theme contrast' are shown and 'Fixed login bug' is not \u2014 proving both substring (not prefix) and case-insensitive matching",
+      "when": "the user types 'dark' into the search input"
+    },
+    {
+      "given": "the user has typed 'dark' (lowercase) into the search input and entries include the mixed-case title 'Improved DARK theme contrast'",
+      "id": "AC3",
+      "then": "'Improved DARK theme contrast' is visible (case-insensitive match confirmed against an input where a case-sensitive implementation would disagree)",
+      "when": "the filter applies"
+    },
+    {
+      "given": "entries include {title: 'Added dark mode', date: '2026-09-01'}, {title: 'Improved DARK theme contrast', date: '2025-05-01'} and {title: 'Fixed login bug', date: '2026-08-01'}",
+      "id": "AC4",
+      "then": "only 'Added dark mode' is shown \u2014 'Improved DARK theme contrast' is excluded by the year, 'Fixed login bug' by the search",
+      "when": "the user selects year '2026' in the year filter and types 'dark' in the search input"
+    },
+    {
+      "given": "the changelog page is loaded",
+      "id": "AC5",
+      "then": "the search input and the year filter both remain visible, and the text 'No entries match.' is rendered in place of the entries list; no entry cards are shown",
+      "when": "the user types 'zzzqqq' into the search input (no entry title contains it)"
+    },
+    {
+      "given": "the search input is empty",
+      "id": "AC6",
+      "then": "no button with accessible name 'Clear search' is present in the DOM",
+      "when": "the page renders"
+    },
+    {
+      "given": "the user has typed 'dark' into the search input so a button with accessible name 'Clear search' has appeared",
+      "id": "AC7",
+      "then": "the search input's value is empty, the clear-search button is no longer present, and entries excluded only by the search text (e.g. 'Fixed login bug') are visible again",
+      "when": "the user clicks that button"
+    },
+    {
+      "given": "the user types '   ' (whitespace only) into the search input",
+      "id": "AC8",
+      "then": "all entries the year filter alone would show are shown (whitespace-only input is treated as empty)",
+      "when": "the filter applies"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC6",
+        "AC7",
+        "AC8"
+      ],
+      "entry_points": [
+        "@/components/changelog/ChangelogFilteredList"
+      ],
+      "path": "__tests__/changelog/title-search.test.tsx",
+      "source": "import React from 'react';\nimport { render, screen, fireEvent } from '@testing-library/react';\nimport '@testing-library/jest-dom';\nimport ChangelogFilteredList from '@/components/changelog/ChangelogFilteredList';\n\n// Discriminating fixture (DTI-01):\n//  - Two titles containing 'dark' in different cases prove case-insensitive matching.\n//  - One 2025 and two 2026 entries let the AND with year filter separate correct from OR.\n//  - 'Fixed login bug' is the negative control that a substring implementation must exclude.\nconst entries = [\n  { title: 'Added dark mode', description: 'A', date: '2026-09-01' },\n  { title: 'Improved DARK theme contrast', description: 'B', date: '2025-05-01' },\n  { title: 'Fixed login bug', description: 'C', date: '2026-08-01' },\n] as any;\n\ndescribe('changelog title search', () => {\n  test('AC1: search input and year filter both render above the list', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('textbox', { name: /search/i })).toBeInTheDocument();\n    expect(screen.getByRole('combobox', { name: /year/i })).toBeInTheDocument();\n    expect(screen.getByText('Added dark mode')).toBeInTheDocument();\n    expect(screen.getByText('Improved DARK theme contrast')).toBeInTheDocument();\n    expect(screen.getByText('Fixed login bug')).toBeInTheDocument();\n  });\n\n  test('AC2 & AC3: typing lowercase \"dark\" matches mixed-case titles; excludes non-matching entry', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    fireEvent.change(screen.getByRole('textbox', { name: /search/i }), { target: { value: 'dark' } });\n    expect(screen.getByText('Added dark mode')).toBeInTheDocument();\n    expect(screen.getByText('Improved DARK theme contrast')).toBeInTheDocument();\n    expect(screen.queryByText('Fixed login bug')).toBeNull();\n  });\n\n  test('AC4: search + year filter combine as AND', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    fireEvent.change(screen.getByRole('textbox', { name: /search/i }), { target: { value: 'dark' } });\n    fireEvent.change(screen.getByRole('combobox', { name: /year/i }), { target: { value: '2026' } });\n    expect(screen.getByText('Added dark mode')).toBeInTheDocument();\n    expect(screen.queryByText('Improved DARK theme contrast')).toBeNull();\n    expect(screen.queryByText('Fixed login bug')).toBeNull();\n  });\n\n  test('AC5: no match \u2014 controls remain, \"No entries match.\" shown in place of entries', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    fireEvent.change(screen.getByRole('textbox', { name: /search/i }), { target: { value: 'zzzqqq' } });\n    expect(screen.getByRole('textbox', { name: /search/i })).toBeInTheDocument();\n    expect(screen.getByRole('combobox', { name: /year/i })).toBeInTheDocument();\n    expect(screen.getByText('No entries match.')).toBeInTheDocument();\n    expect(screen.queryByText('Added dark mode')).toBeNull();\n    expect(screen.queryByText('Improved DARK theme contrast')).toBeNull();\n    expect(screen.queryByText('Fixed login bug')).toBeNull();\n  });\n\n  test('AC6: clear-search control is not present when the input is empty', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.queryByRole('button', { name: /clear search/i })).toBeNull();\n  });\n\n  test('AC7: clear-search appears with text, clears the input on click, and restores search-only-excluded entries', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = screen.getByRole('textbox', { name: /search/i }) as HTMLInputElement;\n    fireEvent.change(input, { target: { value: 'dark' } });\n    expect(screen.queryByText('Fixed login bug')).toBeNull();\n    const clear = screen.getByRole('button', { name: /clear search/i });\n    fireEvent.click(clear);\n    expect(input.value).toBe('');\n    expect(screen.queryByRole('button', { name: /clear search/i })).toBeNull();\n    expect(screen.getByText('Fixed login bug')).toBeInTheDocument();\n  });\n\n  test('AC8: whitespace-only query applies no filtering', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    fireEvent.change(screen.getByRole('textbox', { name: /search/i }), { target: { value: '   ' } });\n    expect(screen.getByText('Added dark mode')).toBeInTheDocument();\n    expect(screen.getByText('Improved DARK theme contrast')).toBeInTheDocument();\n    expect(screen.getByText('Fixed login bug')).toBeInTheDocument();\n  });\n});"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The empty-state text is exactly 'No entries match.' \u2014 a single short sentence with a full stop. This wording was not user-supplied; if the tone should differ (e.g. 'No matching entries.', or naming which filters are active) the engineer should change the string and the AC5 assertion together.",
+      "confidence": "medium"
+    },
+    {
+      "assumption": "The search matches the entry title as stored in `data/changelog.json` (no additional pre-processing). If a display-layer transformation is added elsewhere (e.g. stripping references per PCP-02), search should follow the same rules; today no such transformation exists in the code we can see.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The existing `YearFilter` exposes its option values as year strings (e.g. '2026') so that selecting a year filters entries by the year part of their date. This matches the shipped year-filter spec cited in reference material.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "The changelog page at /changelog already offers a year filter above the entries list (via YearFilter, held by ChangelogFilteredList). This change adds a text search input on the same row as the year filter. The input narrows the visible entries as the user types by matching (case-insensitive, substring) against the entry title only. Search and the year filter combine as AND \u2014 both must match for an entry to be shown. When the input has any text, a clear (\u00d7) button appears inside it; clicking it wipes the search value. When the combined filters match no entries, both controls remain on screen and a plain-text line 'No entries match.' is rendered where the entries list would be.",
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "graph TD\n  Page[app/changelog/page.tsx] --> CFL[ChangelogFilteredList]\n  CFL --> TS[TitleSearch new]\n  CFL --> YF[YearFilter]\n  CFL --> CL[ChangelogList]\n  CFL -. renders when zero results .-> EM[No entries match text]",
+    "title": "How the pieces fit"
+  },
+  "constraints": [
+    {
+      "detail": "Filtering happens on every keystroke in the browser over the entries array (roughly dozens today, hundreds worst case). No debounce is required, but the implementation shall avoid re-rendering the full entries list twice per keystroke (single React state update per input change).",
+      "kind": "performance"
+    },
+    {
+      "detail": "This change is confined to the `pixie-sandbox-site` repository; the sibling `sandbox-changelog-api` is not touched. The ChangelogEntry shape is unchanged.",
+      "kind": "integration"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [
+    "The placeholder text (if any) inside the search input \u2014 engineer's call. Only the accessible label 'Search' is required.",
+    "Whether the row uses `flex gap-*` with the search on the left or a `grid` \u2014 engineer's call, matching the existing spacing/typography of the changelog page.",
+    "Whether the visual affordance of the clear (\u00d7) is a Heroicon (as used by BackToTop/ThemeToggle) or a raw glyph \u2014 engineer's call so long as the accessible name is 'Clear search'.",
+    "Whether Escape-to-clear (see `should`) is implemented in this change or left to a follow-up \u2014 engineer may choose based on effort."
+  ],
+  "feature_id": "d61fb302-1a0d-4076-9dc5-b5343bb5a68c",
+  "flows": [
+    {
+      "kind": "flowchart",
+      "source": "flowchart TD\n  Start[Entry] --> Q1{Year filter set?}\n  Q1 -- no --> Q2\n  Q1 -- yes --> Y{Entry year matches?}\n  Y -- no --> Hide[Not shown]\n  Y -- yes --> Q2{Search text non-empty after trim?}\n  Q2 -- no --> Show[Shown in list]\n  Q2 -- yes --> S{Title contains query case-insensitive?}\n  S -- yes --> Show\n  S -- no --> Hide\n  Hide --> Check{Any entry visible overall?}\n  Show --> Check\n  Check -- no --> Empty[Render No entries match]\n  Check -- yes --> List[Render entries list]",
+      "title": "How an entry becomes visible (or not)"
+    }
+  ],
+  "must": [
+    "The system shall render a text search input on the same row as the existing year filter, above the entries list, on /changelog.",
+    "The search input shall have a visible label and accessible name of 'Search'.",
+    "WHEN the user types into the search input the system shall show only entries whose title contains the typed text.",
+    "The system shall match the search text against the entry title using a case-insensitive substring comparison.",
+    "The system shall trim leading and trailing whitespace from the search text before matching; a whitespace-only query is treated as empty and applies no filtering.",
+    "WHERE both a search text and a year are set the system shall show only entries that match both (AND).",
+    "WHILE the search input is empty the system shall not render the clear-search control.",
+    "WHILE the search input contains any non-whitespace text the system shall render a clear-search control inside the input, with the accessible name 'Clear search'.",
+    "WHEN the user activates the clear-search control the system shall clear the search input and re-apply only the year filter to the entries.",
+    "IF the combined filters match no entries THEN the system shall keep both the search input and the year filter rendered, and shall display the text 'No entries match.' in place of the entries list.",
+    "The clear-search control shall be a real `<button>` element (keyboard-focusable and activatable with Enter or Space)."
+  ],
+  "non_functional": [
+    {
+      "applies": true,
+      "category": "performance",
+      "criteria": [
+        "AC2",
+        "AC4"
+      ],
+      "target": "Filtering is synchronous and O(n) over the entries array. With hundreds of entries the observable typing latency shall remain imperceptible (< 50 ms per keystroke on a modern laptop).",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "availability",
+      "criteria": [],
+      "target": null,
+      "why_not": "This is a client-side change with no runtime dependency on any service; availability is inherited from the static site itself."
+    },
+    {
+      "applies": false,
+      "category": "security",
+      "criteria": [],
+      "target": null,
+      "why_not": "No user input leaves the browser, no data is stored server-side, and no query is interpolated into any URL, DOM sink, or executable path. Search text renders only into a controlled input's value."
+    },
+    {
+      "applies": false,
+      "category": "privacy",
+      "criteria": [],
+      "target": null,
+      "why_not": "The search value is never persisted, logged, or transmitted. It lives in component state for the duration of the page view."
+    },
+    {
+      "applies": false,
+      "category": "observability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No new telemetry is proposed; the changelog page has none today. Adding analytics for search usage is out of scope."
+    },
+    {
+      "applies": true,
+      "category": "accessibility",
+      "criteria": [
+        "AC1",
+        "AC6",
+        "AC7"
+      ],
+      "target": "The search input has a visible programmatic label ('Search') associated with it, the clear control has the accessible name 'Clear search' and is a real focusable `<button>`, and the empty-state message is rendered as ordinary text in the document flow (not announced only via aria-live).",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "compliance",
+      "criteria": [],
+      "target": null,
+      "why_not": "The changelog is a marketing/product surface; no regulated content is affected by this change."
+    }
+  ],
+  "open_questions": [
+    "Should the search value be reflected in the URL (query parameter) so that a filtered view is shareable? Out of scope for this change; noted here in case a follow-up wants it.",
+    "Should Escape while focused in the search input clear it? Included in `should` but not asserted \u2014 engineer's call on whether to implement now."
+  ],
+  "outcome": "Readers can find a changelog entry by typing part of its title into a search box above the list, alone or combined with the existing year filter, and are told plainly when nothing matches.",
+  "rationale": "The user has asked for one small, focused capability on an existing filtered-list page. The shape follows the existing pattern: `ChangelogFilteredList` already composes `YearFilter` with `ChangelogList`, so a new sibling `TitleSearch` component is the natural addition and matches the previously-shipped decision (memory entry K) to keep the year filter in its own testable file. `ChangelogFilteredList` becomes the one place that holds both filter states and computes the combined visible list; both children stay presentational.\n\nThe acceptance criteria are chosen to *discriminate* rather than merely to describe (DTI-01): AC2/AC3 use a lowercase query against a mixed-case title, so a case-sensitive implementation fails; AC4 uses entries where each filter alone matches something different, so an OR implementation fails; AC5 exercises the empty branch, so a 'render nothing' implementation that also hides the controls fails.\n\nEmpty state is asserted as a specific string ('No entries match.') so it is machine-checkable. The clear-control accessible name is likewise fixed ('Clear search') so AC6 and AC7 do not depend on visual style.\n\nAll new copy is small, self-contained and free of work-tracking references, so PCP-02 does not bear on this change. No dates or times are introduced, so DTS-04 does not either. No writes are performed, so DWR-01 does not.",
+  "risks": [
+    {
+      "mitigation": "The exact string 'No entries match.' is fixed in AC5 and in the acceptance test. Any wording change requires updating both together, which prevents silent divergence.",
+      "reference": null,
+      "severity": "low",
+      "title": "Empty-state assertion drift"
+    },
+    {
+      "mitigation": "Both filter states live in `ChangelogFilteredList` (single source of truth). The visible list is computed from both together, so changing one cannot leave the other stale.",
+      "reference": null,
+      "severity": "low",
+      "title": "Two filter states diverging"
+    }
+  ],
+  "rollout": null,
+  "schema_version": 8,
+  "should": [
+    "The system should place focus on the search input when the user presses the Escape key while focus is in the input, after clearing its value.",
+    "The system should preserve the current year-filter selection when the search input changes, and vice versa."
+  ],
+  "standards_applied": [
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+      "why_not": "This change adds a text search box and an empty-state line. It does not introduce, reformat or display any date or time; existing date rendering on the changelog is untouched."
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
+      "why_not": "The changelog reads entries from a static JSON module (`data/changelog.json`) at build time. This feature performs no database writes \u2014 the filter runs entirely in the browser over in-memory data."
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5"
+      ],
+      "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
+      "why_not": "Every acceptance criterion (AC1\u2013AC8) is covered by an entry in `acceptance_tests` below, so no criterion is left without a test."
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+      "why_not": "The only new customer-visible copy this feature introduces is the input label 'Search' and the empty-state line 'No entries match.'. Neither contains a work-tracking reference. The feature does not surface any additional stored source text; entries continue to display as the site already displays them."
+    }
+  ],
+  "swe_constraints": [
+    "Put the search input in its own file `components/changelog/TitleSearch.tsx`, parallel to `YearFilter.tsx`. `ChangelogFilteredList.tsx` composes both and owns the combined filter state.",
+    "The visible label on the search input is the word 'Search' and the input's accessible name resolves to 'Search' (e.g. via `<label>` or `aria-label`).",
+    "Match logic: `title.toLowerCase().includes(query.trim().toLowerCase())`. A whitespace-only query is treated as empty and applies no filtering.",
+    "Filters combine as AND: an entry is visible iff (year matches OR year is 'all') AND (search matches OR search is empty after trim).",
+    "The clear (\u00d7) control is a real `<button type=\"button\">` with `aria-label=\"Clear search\"`, rendered only when the input has non-whitespace text, and positioned inside the input (right-aligned) using the existing tailwind conventions used elsewhere on the page.",
+    "When the combined filter yields zero entries, both `TitleSearch` and `YearFilter` remain rendered above, and a single line of text with the exact content 'No entries match.' is rendered in place of the entries list.",
+    "Filtering runs synchronously on every input change; do not add debounce. The entries array is small enough that this is imperceptible.",
+    "Do not introduce any new npm dependency for this change (the site uses only next, react and react-dom at runtime today)."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "reason": "Holds the combined filter state (year + search) and computes the visible entries; today it composes YearFilter and ChangelogList \u2014 it will additionally compose the new TitleSearch and render the empty-state line when the combined result is empty."
+    },
+    {
+      "exists": false,
+      "path": "components/changelog/TitleSearch.tsx",
+      "reason": "New sibling to YearFilter, in the same folder, following the established pattern (memory K) of keeping each filter control in its own small, focused, testable file. Holds the search input, the clear-search button and calls back into ChangelogFilteredList on change."
+    },
+    {
+      "exists": false,
+      "path": "__tests__/changelog/title-search.test.tsx",
+      "reason": "New acceptance test file for this feature; imports the existing ChangelogFilteredList so it can drive the whole feature end-to-end without depending on TitleSearch's file path."
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "The search box sits on the same row as the year filter",
+        "Typing narrows entries as I type \u2014 no submit needed",
+        "Case doesn't matter \u2014 'dark' finds 'DARK'",
+        "The search and year filter combine (both must match)",
+        "If nothing matches I see 'No entries match.' where the entries would be",
+        "A visible '\u00d7' inside the input clears it in one click"
+      ],
+      "references": [],
+      "role": "changelog reader",
+      "so_that": "I can find a specific past change without scrolling every entry",
+      "want": "a text search box above the list that narrows entries as I type against their title"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Find a specific past entry by a keyword I remember from its title",
+        "Narrow first by year, then within that year by keyword"
+      ],
+      "name": "Changelog reader",
+      "pain_points": [
+        "The changelog is a long scroll of dozens of entries",
+        "Year filtering alone still leaves too much to scan in a busy year"
+      ]
+    }
+  ],
+  "wireframes": [
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": "What we shipped",
+            "text": "Changelog",
+            "type": "header"
+          },
+          {
+            "children": [
+              {
+                "kind": "text",
+                "label": "Search",
+                "placeholder": "Search entries by title",
+                "type": "input"
+              },
+              {
+                "kind": "select",
+                "label": "Year",
+                "placeholder": null,
+                "type": "input"
+              }
+            ],
+            "title": "Filters",
+            "type": "card"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "Site now respects the OS colour-scheme preference and remembers a manual override.",
+                "type": "text"
+              }
+            ],
+            "title": "09 Sep 2026 \u2014 Added dark mode",
+            "type": "card"
+          },
+          {
+            "children": [
+              {
+                "emphasis": "normal",
+                "text": "Users are no longer bounced back to the login page after a successful sign-in.",
+                "type": "text"
+              }
+            ],
+            "title": "08 Aug 2026 \u2014 Fixed login bug",
+            "type": "card"
+          }
+        ],
+        "title": "Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Changelog with search and year filter on one row"
+    },
+    {
+      "root": {
+        "children": [
+          {
+            "subtitle": "What we shipped",
+            "text": "Changelog",
+            "type": "header"
+          },
+          {
+            "children": [
+              {
+                "kind": "text",
+                "label": "Search",
+                "placeholder": "zzzqqq  \u00d7",
+                "type": "input"
+              },
+              {
+                "kind": "select",
+                "label": "Year",
+                "placeholder": null,
+                "type": "input"
+              }
+            ],
+            "title": "Filters (Search: zzzqqq, Year: 2026)",
+            "type": "card"
+          },
+          {
+            "emphasis": "muted",
+            "text": "No entries match.",
+            "type": "text"
+          }
+        ],
+        "title": "Changelog",
+        "type": "screen",
+        "width": "default"
+      },
+      "title": "Empty state \u2014 search matches nothing"
+    }
+  ],
+  "wont": [
+    "The system will not search over entry description, date, or the 'breaking' flag \u2014 only the title.",
+    "The system will not persist the search value in the URL (deep-linking a query is out of scope for this change).",
+    "The system will not add server-side search; filtering is entirely client-side over the entries already loaded.",
+    "The system will not add fuzzy matching, tokenisation, or highlighting of matched substrings."
+  ]
+}
