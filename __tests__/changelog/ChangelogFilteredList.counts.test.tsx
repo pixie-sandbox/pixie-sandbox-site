@@ -1,6 +1,37 @@
+import { useReducer } from 'react'
 import '@testing-library/jest-dom'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import ChangelogFilteredList from '@/components/changelog/ChangelogFilteredList'
+
+// Reactive mock: router.replace updates the shared params so that the component
+// re-renders with the new filter state, matching how Next.js works in production.
+// useReducer is imported at the top level to avoid require() inside the factory.
+let _currentParams = new URLSearchParams()
+let _forceUpdate: (() => void) | null = null
+const mockReplace = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => {
+    const [, forceUpdate] = useReducer((n: number) => n + 1, 0)
+    _forceUpdate = forceUpdate
+    return _currentParams
+  },
+  useRouter: () => ({
+    replace: (url: string, opts?: unknown) => {
+      mockReplace(url, opts)
+      const qs = (url.includes('?') ? url.slice(url.indexOf('?') + 1) : '')
+      _currentParams = new URLSearchParams(qs)
+      _forceUpdate?.()
+    },
+  }),
+  usePathname: () => '/changelog',
+}))
+
+beforeEach(() => {
+  mockReplace.mockClear()
+  _currentParams = new URLSearchParams()
+  _forceUpdate = null
+})
 
 const entries = [
   { title: 'a', description: 'x', date: '2026-06-01' },

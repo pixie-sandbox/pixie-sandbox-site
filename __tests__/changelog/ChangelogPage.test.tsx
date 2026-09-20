@@ -10,6 +10,13 @@
 import { render, screen, cleanup } from "@testing-library/react";
 import ChangelogPage from "@/app/changelog/page";
 
+const mockReplace = jest.fn();
+jest.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ replace: mockReplace }),
+  usePathname: () => "/changelog",
+}));
+
 jest.mock("@/data/changelog.json", () => []);
 
 type Entry = { title: string; description: string; date: string };
