@@ -1,387 +1,431 @@
 {
-  "acceptance_criteria": [
-    {
-      "given": "a changelog dataset containing at least one 2024 entry and at least one 2025 entry",
-      "id": "AC1",
-      "then": "the year filter control shows 2024 on load, only 2024 entries render, and the on-page count reflects the filtered number",
-      "when": "a visitor opens /changelog?year=2024"
-    },
-    {
-      "given": "an entry titled 'Firebase logon shipped' and entries whose titles do not contain 'firebase'",
-      "id": "AC2",
-      "then": "the search input shows 'FIREBASE' on load, the Firebase entry renders, and non-matching entries do not",
-      "when": "a visitor opens /changelog?q=FIREBASE"
-    },
-    {
-      "given": "entries in multiple years and with varying titles",
-      "id": "AC3",
-      "then": "only entries that are from 2025 AND whose titles contain 'retry' render; entries matching only one of the two do not",
-      "when": "a visitor opens /changelog?year=2025&q=retry"
-    },
-    {
-      "given": "a changelog with entries in multiple years",
-      "id": "AC4",
-      "then": "all entries render, identical to opening /changelog with no query string",
-      "when": "a visitor opens /changelog?q="
-    },
-    {
-      "given": "a changelog with entries in multiple years",
-      "id": "AC5",
-      "then": "all entries render (whitespace-only is treated as no filter)",
-      "when": "a visitor opens /changelog?q=%20%20%20"
-    },
-    {
-      "given": "a changelog with entries in 2024 and 2025",
-      "id": "AC6",
-      "then": "all entries render (non-numeric year is ignored), rather than an empty list",
-      "when": "a visitor opens /changelog?year=notayear"
-    },
-    {
-      "given": "a changelog whose oldest entry is from 2024",
-      "id": "AC7",
-      "then": "all entries render (unknown numeric year is ignored), rather than an empty list",
-      "when": "a visitor opens /changelog?year=1999"
-    },
-    {
-      "given": "a visitor viewing /changelog with no query string",
-      "id": "AC8",
-      "then": "the URL becomes /changelog?year=2025 via history replace (not push), and the browser back-navigation entry is unchanged",
-      "when": "the visitor selects year 2025 from the year filter"
-    },
-    {
-      "given": "a visitor viewing /changelog with no query string",
-      "id": "AC9",
-      "then": "the URL updates to /changelog?q=firebase using history replace on each keystroke, and no additional history entries are pushed",
-      "when": "the visitor types 'firebase' into the search input, one character at a time"
-    },
-    {
-      "given": "a visitor viewing /changelog?year=2025",
-      "id": "AC10",
-      "then": "the URL becomes /changelog with no query string; it does not become /changelog?year=",
-      "when": "the visitor clears the year filter (selects the 'all years' option)"
-    },
-    {
-      "given": "a visitor viewing /changelog?q=firebase",
-      "id": "AC11",
-      "then": "the URL becomes /changelog with no query string; it does not become /changelog?q=",
-      "when": "the visitor deletes the search input's contents"
-    },
-    {
-      "given": "a visitor viewing /changelog with a q= value that matches no entries",
-      "id": "AC12",
-      "then": "an empty result region is rendered (not the full unfiltered list, and not a raw whitespace gap); the count indicator shows zero",
-      "when": "the filter is applied"
-    },
-    {
-      "given": "the changelog dataset",
-      "id": "AC13",
-      "then": "the RSS body is identical to the body served before this change and identical whether ?year or ?q are present",
-      "when": "a request is made to /changelog.xml with or without any query string"
-    }
-  ],
-  "acceptance_tests": [
-    {
-      "covers": [
-        "AC1",
-        "AC2",
-        "AC3",
-        "AC4",
-        "AC5",
-        "AC6",
-        "AC7",
-        "AC8",
-        "AC9",
-        "AC10",
-        "AC11",
-        "AC12"
+  "spec": {
+    "acceptance_criteria": [
+      {
+        "given": "a visitor opens /changelog with no query parameters",
+        "id": "AC1",
+        "then": "the year filter shows no selection (default option), the search input is empty, and the entry list contains every entry from data/changelog.json",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?year=2026 and 2026 is a year present in the entries",
+        "id": "AC2",
+        "then": "the year filter shows 2026 selected and the entry list contains only entries whose date falls in 2026",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?q=dark and at least one entry has 'dark' in its title (case-insensitive)",
+        "id": "AC3",
+        "then": "the search input contains 'dark' and the entry list contains only entries whose title matches 'dark' as a case-insensitive substring",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?year=2026&q=dark",
+        "id": "AC4",
+        "then": "the entry list contains only entries that are both from 2026 AND whose title matches 'dark' case-insensitively",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?year=9999 and no entry has a 2026 or later date matching 9999",
+        "id": "AC5",
+        "then": "the year filter shows no selection and the entry list contains every entry, as if the year parameter had been absent",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?q=",
+        "id": "AC6",
+        "then": "the search input is empty and the entry list contains every entry, as if the q parameter had been absent",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?q=%20%20%20",
+        "id": "AC7",
+        "then": "the search input contains the whitespace (as sent) OR is empty, but the entry list contains every entry, treating the query as no filter after trimming",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?year=abc",
+        "id": "AC8",
+        "then": "the year filter shows no selection and the entry list contains every entry, as if the year parameter had been absent",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor is on /changelog with no filters applied",
+        "id": "AC9",
+        "then": "the URL becomes /changelog?year=2026 via history replacement (window.history length does not increase) and the entry list updates to 2026 entries only",
+        "when": "they select 2026 from the year filter"
+      },
+      {
+        "given": "a visitor is on /changelog with no filters applied",
+        "id": "AC10",
+        "then": "each keystroke updates the URL via history replacement so window.history length is unchanged from before typing began, and after all keystrokes the URL query is ?q=firebase",
+        "when": "they type 'firebase' into the search input one character at a time"
+      },
+      {
+        "given": "a visitor navigated to /changelog from another page and has since selected a year and typed a search",
+        "id": "AC11",
+        "then": "the browser leaves /changelog for the previous page rather than stepping through prior filter states",
+        "when": "they press the browser Back button"
+      },
+      {
+        "given": "a visitor is on /changelog?year=2026&q=firebase with the filtered list showing",
+        "id": "AC12",
+        "then": "the year filter shows 2026, the search input contains 'firebase', and the entry list shows the same filtered set as before the reload",
+        "when": "they reload the page"
+      },
+      {
+        "given": "a visitor opens /changelog?q=dark",
+        "id": "AC13",
+        "then": "document.activeElement is not the search input and not the year filter \u2014 page load does not steal focus into either control",
+        "when": "the page renders"
+      },
+      {
+        "given": "a visitor opens /changelog?q=<a string of 500 characters, where the first 200 characters would match at least one entry title and the remainder would not>",
+        "id": "AC14",
+        "then": "the search input value is exactly the first 200 characters of the parameter (input.value.length === 200), and the entry list is filtered by case-insensitive substring match on that 200-character prefix \u2014 not the full 500-character string",
+        "when": "the page renders"
+      }
+    ],
+    "acceptance_tests": [
+      {
+        "covers": [
+          "AC1",
+          "AC2",
+          "AC3",
+          "AC4",
+          "AC5",
+          "AC6",
+          "AC7",
+          "AC8",
+          "AC9",
+          "AC10",
+          "AC12",
+          "AC13",
+          "AC14"
+        ],
+        "entry_points": [
+          "@/components/changelog/ChangelogFilteredList"
+        ],
+        "path": "__tests__/changelog/ChangelogFilteredList.urlparams.test.tsx",
+        "source": "import { render, screen, fireEvent } from '@testing-library/react';\nimport '@testing-library/jest-dom';\nimport ChangelogFilteredList from '@/components/changelog/ChangelogFilteredList';\n\nconst replaceMock = jest.fn();\nlet currentSearch = '';\n\njest.mock('next/navigation', () => ({\n  useSearchParams: () => new URLSearchParams(currentSearch),\n  useRouter: () => ({ replace: replaceMock, push: jest.fn() }),\n  usePathname: () => '/changelog',\n}));\n\nconst entries = [\n  { slug: '2026-firebase', title: 'Firebase logon shipped', date: '2026-08-01', body: '' },\n  { slug: '2026-darkmode', title: 'Dark mode arrives', date: '2026-06-15', body: '' },\n  { slug: '2025-launch', title: 'Sandbox launched', date: '2025-11-02', body: '' },\n  { slug: '2024-firstpost', title: 'First darkening of docs', date: '2024-03-11', body: '' },\n];\n\nbeforeEach(() => {\n  replaceMock.mockClear();\n  currentSearch = '';\n});\n\ndescribe('URL-backed filter state', () => {\n  test('AC1: absent params render unfiltered', () => {\n    currentSearch = '';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('combobox', { name: /year/i })).toHaveValue('');\n    expect(screen.getByRole('searchbox')).toHaveValue('');\n    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(4);\n  });\n\n  test('AC2: ?year=2026 seeds the year filter and filters entries', () => {\n    currentSearch = 'year=2026';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('combobox', { name: /year/i })).toHaveValue('2026');\n    expect(screen.getByText(/Firebase logon shipped/)).toBeInTheDocument();\n    expect(screen.getByText(/Dark mode arrives/)).toBeInTheDocument();\n    expect(screen.queryByText(/Sandbox launched/)).not.toBeInTheDocument();\n    expect(screen.queryByText(/First darkening of docs/)).not.toBeInTheDocument();\n  });\n\n  test('AC3: ?q=dark seeds search and case-insensitively matches title substring', () => {\n    currentSearch = 'q=dark';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('searchbox')).toHaveValue('dark');\n    expect(screen.getByText(/Dark mode arrives/)).toBeInTheDocument();\n    expect(screen.getByText(/First darkening of docs/)).toBeInTheDocument();\n    expect(screen.queryByText(/Firebase logon shipped/)).not.toBeInTheDocument();\n  });\n\n  test('AC4: year AND q combine', () => {\n    currentSearch = 'year=2026&q=dark';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByText(/Dark mode arrives/)).toBeInTheDocument();\n    expect(screen.queryByText(/First darkening of docs/)).not.toBeInTheDocument();\n    expect(screen.queryByText(/Firebase logon shipped/)).not.toBeInTheDocument();\n  });\n\n  test('AC5: unknown year is ignored, not empty', () => {\n    currentSearch = 'year=9999';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('combobox', { name: /year/i })).toHaveValue('');\n    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(4);\n  });\n\n  test('AC6: empty ?q= means no filter', () => {\n    currentSearch = 'q=';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('searchbox')).toHaveValue('');\n    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(4);\n  });\n\n  test('AC7: whitespace-only ?q= produces no filter', () => {\n    currentSearch = 'q=%20%20';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(4);\n  });\n\n  test('AC8: non-numeric ?year= is ignored', () => {\n    currentSearch = 'year=abc';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('combobox', { name: /year/i })).toHaveValue('');\n    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(4);\n  });\n\n  test('AC9: year change calls router.replace, not push', () => {\n    currentSearch = '';\n    render(<ChangelogFilteredList entries={entries} />);\n    fireEvent.change(screen.getByRole('combobox', { name: /year/i }), { target: { value: '2026' } });\n    expect(replaceMock).toHaveBeenCalled();\n    const arg = replaceMock.mock.calls[0][0] as string;\n    expect(arg).toContain('year=2026');\n  });\n\n  test('AC10: every keystroke in search calls router.replace', () => {\n    currentSearch = '';\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = screen.getByRole('searchbox');\n    fireEvent.change(input, { target: { value: 'f' } });\n    fireEvent.change(input, { target: { value: 'fi' } });\n    fireEvent.change(input, { target: { value: 'fir' } });\n    expect(replaceMock).toHaveBeenCalledTimes(3);\n    const lastArg = replaceMock.mock.calls[2][0] as string;\n    expect(lastArg).toContain('q=fir');\n  });\n\n  test('AC12: reload with both filters set restores the filtered view', () => {\n    currentSearch = 'year=2026&q=firebase';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByRole('combobox', { name: /year/i })).toHaveValue('2026');\n    expect(screen.getByRole('searchbox')).toHaveValue('firebase');\n    expect(screen.getByText(/Firebase logon shipped/)).toBeInTheDocument();\n    expect(screen.queryByText(/Dark mode arrives/)).not.toBeInTheDocument();\n  });\n\n  test('AC13: seeded ?q= does not steal focus on mount', () => {\n    currentSearch = 'q=dark';\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(document.activeElement).not.toBe(screen.getByRole('searchbox'));\n    expect(document.activeElement).not.toBe(screen.getByRole('combobox', { name: /year/i }));\n  });\n\n  test('AC14: q longer than 200 characters is truncated to 200 and filtered on the prefix', () => {\n    const prefix = 'firebase'.padEnd(200, 'x');\n    const tail = 'z'.repeat(300);\n    currentSearch = 'q=' + encodeURIComponent(prefix + tail);\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = screen.getByRole('searchbox') as HTMLInputElement;\n    expect(input.value).toHaveLength(200);\n    expect(input.value).toBe(prefix);\n    expect(input.value).not.toContain('z');\n  });\n});"
+      }
+    ],
+    "api": [],
+    "assumptions": [
+      {
+        "assumption": "The existing title-search behaviour is case-insensitive substring match; this spec preserves it and AC3 pins it.",
+        "confidence": "high"
+      },
+      {
+        "assumption": "`ChangelogFilteredList.tsx` remains the sole owner of filter state; the leaf controls stay purely controlled by props.",
+        "confidence": "high"
+      },
+      {
+        "assumption": "Wrapping the client component in a `<Suspense>` boundary in `app/changelog/page.tsx` is the standard Next.js 16 requirement for a `useSearchParams` consumer rendered by a server component; the engineer will confirm from the vendored docs.",
+        "confidence": "medium"
+      }
+    ],
+    "breakouts": [
+      {
+        "items": [
+          "Replace `useState` for `selectedYear` and `searchQuery` with `useSearchParams` reads",
+          "Introduce `updateQuery(nextYear, nextQ)` helper that builds a URLSearchParams and calls `router.replace`",
+          "Apply `.slice(0, 200)` to `q` at read time before storing or rendering",
+          "Coerce `year` via `parseInt`; fall back to `null` on NaN or absent-from-derived-years",
+          "Add `<Suspense>` wrapper in `app/changelog/page.tsx`"
+        ],
+        "size": "small",
+        "title": "URL-backed filter state in ChangelogFilteredList"
+      },
+      {
+        "items": [
+          "Add `jest.mock('next/navigation', ...)` to the four existing test files that render `ChangelogFilteredList`",
+          "Create `__tests__/changelog/ChangelogFilteredList.urlparams.test.tsx` per the acceptance_tests entry",
+          "Verify existing 12 filter-and-search tests still pass with the mock in place"
+        ],
+        "size": "small",
+        "title": "Test suite: mock next/navigation and add URL-param coverage"
+      }
+    ],
+    "clarified_description": "The changelog page shows a list of entries with two filters \u2014 a year dropdown and a title search \u2014 whose state lives in `ChangelogFilteredList` via `useState`. A reader who has narrowed the list cannot share that view: the URL does not change as they filter, so pasting the address into a message shows the recipient the unfiltered page, and reloading loses the narrowed view. This change lifts both filters into the URL query string (`?year=` and `?q=`) and reads them back on mount, so a filtered view is shareable and survives reload. Filter changes use `router.replace`, not `router.push`, so Back leaves the changelog rather than walking through every keystroke. Absent, empty and whitespace-only parameters all mean no filter; an unknown or malformed year is silently ignored; and a very long `q` is bounded at 200 characters and filtered on the truncated value so a shared link cannot carry an unbounded string into the input.",
+    "component_diagram": null,
+    "constraints": [
+      {
+        "detail": "Next.js 16.2.6 with React 19 \u2014 the App Router APIs (`useSearchParams`, `useRouter`, `usePathname` from `next/navigation`) apply here. AGENTS.md warns this Next.js version differs from prior training data; the engineer must consult `node_modules/next/dist/docs/` before writing the hook usage.",
+        "kind": "integration"
+      },
+      {
+        "detail": "The `q` value the component holds and iterates must be capped at 200 characters at read time so a shared link cannot force an unbounded substring scan on every render.",
+        "kind": "performance"
+      },
+      {
+        "detail": "History mutation must use replacement (`router.replace`), never push. Every keystroke and every year-select produces at most one replaced entry, and the size of `window.history` does not grow across a filtering session.",
+        "kind": "other"
+      }
+    ],
+    "contracts": [],
+    "contributions_applied": [],
+    "data_changes": [],
+    "data_model": [],
+    "deferred_decisions": [
+      "Exact Next.js 16 signature of `router.replace` options \u2014 engineer verifies from `node_modules/next/dist/docs/` and picks the correct scroll-suppression flag.",
+      "Whether the `next/navigation` module mock in the test files is defined inline per test file or extracted to `jest.setup.ts` \u2014 this is a housekeeping call for the SWE. Both work; consistency matters more than which.",
+      "Debounce on keystroke URL writes is intentionally NOT specified \u2014 `router.replace` is cheap and the address bar updating live is expected behaviour for URL-synced filters. If profiling later shows a real cost, a debounce can be added without spec change."
+    ],
+    "feature_id": "a1188b79-7ae4-4df9-8722-d84d859b7947",
+    "flows": [
+      {
+        "kind": "flowchart",
+        "source": "graph TD\n  A[User changes year or types in search] --> B{Build next query string}\n  B --> C[q: slice to 200 chars if longer]\n  C --> D[Omit any param at default value]\n  D --> E[router.replace with new URL]\n  E --> F[Component re-reads useSearchParams]\n  F --> G[Filter predicate applied to entries]\n  G --> H[List and count re-render]",
+        "title": "Filter change \u2192 URL sync flow"
+      },
+      {
+        "kind": "sequence",
+        "source": "sequenceDiagram\n  participant Browser\n  participant Page as app/changelog/page.tsx\n  participant List as ChangelogFilteredList\n  participant Nav as useSearchParams\n  Browser->>Page: GET /changelog?year=2026&q=dark\n  Page->>List: render inside Suspense\n  List->>Nav: read params\n  Nav-->>List: year=2026, q=dark\n  List->>List: parseInt year; slice q to 200\n  List->>List: apply AND filter\n  List-->>Browser: filtered list, seeded controls, focus untouched",
+        "title": "Page load with URL parameters"
+      }
+    ],
+    "must": [
+      "WHEN a visitor opens /changelog with no query parameters the system shall render the changelog with no year filter selected and an empty search input.",
+      "WHEN a visitor opens /changelog?year=<Y> where <Y> is a year for which at least one entry exists the system shall render the changelog with that year selected on the year filter.",
+      "WHEN a visitor opens /changelog?q=<text> where <text> is a non-empty, non-whitespace string of no more than 200 characters the system shall render the changelog with the search input containing <text> and the entry list filtered by case-insensitive substring match on title.",
+      "WHEN a visitor opens /changelog?year=<Y>&q=<text> the system shall apply both filters combined as AND.",
+      "IF the ?year= parameter is absent, empty, whitespace-only, non-numeric, or names a year for which no entry exists THEN the system shall render the changelog as though no year filter were requested.",
+      "IF the ?q= parameter is absent, empty, or whitespace-only after trimming THEN the system shall render the changelog as though no title search were requested.",
+      "IF the ?q= parameter contains more than 200 characters THEN the system shall truncate the value to its first 200 characters, place the truncated value in the search input, and filter the entry list on the truncated value.",
+      "WHEN a visitor changes the year filter the system shall update the URL query string via history replacement, not history push, preserving any existing ?q= value.",
+      "WHEN a visitor changes the title search the system shall update the URL query string via history replacement, not history push, on every input change, preserving any existing ?year= value.",
+      "WHEN a visitor has interacted with either filter and presses the browser Back button the system shall leave the /changelog page rather than replaying earlier filter states.",
+      "WHEN a visitor reloads /changelog with filter parameters set the system shall render the same filtered view as before the reload.",
+      "WHEN a filter is applied (whether from URL on load or by interaction) the system shall show the count text and the entry list reflecting the filtered set.",
+      "WHEN /changelog is opened with a ?q= or ?year= parameter that seeds a filter the system shall NOT move keyboard focus to either the search input or the year filter on load.",
+      "WHERE the search input value is derived from ?q= the system shall never contain more than 200 characters, whether that value was received via URL, keystroke, or paste."
+    ],
+    "non_functional": [
+      {
+        "applies": true,
+        "category": "performance",
+        "criteria": [
+          "AC10",
+          "AC14"
+        ],
+        "target": "URL updates on keystroke must not degrade typing responsiveness \u2014 the filter re-render is the existing cost, `router.replace` is fire-and-forget. A 200-character bound on q prevents an unbounded string from being iterated by the substring filter on every render.",
+        "why_not": null
+      },
+      {
+        "applies": false,
+        "category": "availability",
+        "criteria": [],
+        "target": null,
+        "why_not": "Client-side URL sync has no availability dimension beyond that of the page itself, which is unchanged."
+      },
+      {
+        "applies": true,
+        "category": "security",
+        "criteria": [
+          "AC14"
+        ],
+        "target": null,
+        "why_not": null
+      },
+      {
+        "applies": true,
+        "category": "privacy",
+        "criteria": [
+          "AC10"
+        ],
+        "target": null,
+        "why_not": null
+      },
+      {
+        "applies": false,
+        "category": "observability",
+        "criteria": [],
+        "target": null,
+        "why_not": "No new logging, metrics, or tracing points; this is a client-only interaction change on a public page."
+      },
+      {
+        "applies": true,
+        "category": "accessibility",
+        "criteria": [
+          "AC13"
+        ],
+        "target": "Existing label associations and ARIA on `YearFilter` and `TitleSearch` remain intact; page load does not steal keyboard focus.",
+        "why_not": null
+      },
+      {
+        "applies": false,
+        "category": "compliance",
+        "criteria": [],
+        "target": null,
+        "why_not": "No regulated data class is touched by this change."
+      }
+    ],
+    "open_questions": [
+      "AC11 (Back leaves the changelog) is hard to assert deterministically in jsdom because JSDOM's history behaviour under `router.replace` is a mock; documented in `deferred_decisions` per UMC-01.",
+      "Whether the exact Next.js 16 hook shape matches the pre-16 App Router \u2014 the engineer must verify from `node_modules/next/dist/docs/` before finalising imports."
+    ],
+    "outcome": "A reader who narrows the changelog by year or title can share or bookmark the URL and the recipient sees the same filtered view; reloading preserves it.",
+    "rationale": "**Where the change lives.** `ChangelogFilteredList` already owns both filter states in `useState`. Replacing those two `useState` calls with a URL-backed pair (read via `useSearchParams` on mount, written back via `router.replace` on change) is the minimum change that meets the requirement and preserves the existing controlled-component shape of `YearFilter` and `TitleSearch`.\n\n**Why `replace`, not `push`.** The request specifies it, and it is the only way to keep Back useful. A push-per-keystroke would make Back replay the query letter by letter \u2014 the antithesis of what the user asked for.\n\n**Why bound `q` at 200 characters.** A shared URL is an untrusted input. Without a bound, a link with a multi-megabyte `q` sets that string as the input `value`, iterates it on every entry title on every render, and does so on every keystroke thereafter. 200 characters is longer than any legitimate title search and short enough that even a pathological link filters in constant perceptible time. Truncating (rather than ignoring) preserves the principle 'a long link still shows something sensible' \u2014 the reader sees results, just not for the tail of the query.\n\n**Why no focus stealing.** A shared link is shared to be *read*. Auto-focusing the search input on a seeded load would scroll on mobile and take the caret away from wherever the reader was heading.\n\n**Why empty/whitespace parameters are absent.** A shared link that accumulates stray `&q=` or `&year=` fragments through routing intermediaries must not behave differently from the clean form. AC6, AC7 and the year equivalents pin this.\n\n**Why not server-side pre-render.** `app/changelog/page.tsx` is a server component today; introducing `searchParams` there would change more than the request warrants and would still leave the client component owning interaction state. Client-side URL parsing is the smaller move.",
+    "risks": [
+      {
+        "mitigation": "AGENTS.md mandates reading `node_modules/next/dist/docs/` before writing the hook code. The engineer verifies signatures against the vendored docs rather than training-data recall.",
+        "reference": null,
+        "severity": "medium",
+        "title": "Next.js 16 navigation API differs from prior versions"
+      },
+      {
+        "mitigation": "AC14 bounds q at 200 characters at read time \u2014 before it enters state, before it is passed to the input, and before it is used as the filter predicate. Truncate rather than ignore so the link still shows something sensible.",
+        "reference": null,
+        "severity": "high",
+        "title": "Unbounded q parameter drives runaway filtering on shared link"
+      },
+      {
+        "mitigation": "`app/changelog/page.tsx` explicitly listed in touches with the requirement to wrap the client component in `<Suspense>`. The `swe_constraints` name it directly.",
+        "reference": null,
+        "severity": "medium",
+        "title": "Suspense boundary omitted, breaking the App Router build"
+      }
+    ],
+    "rollout": {
+      "flags": [],
+      "metrics": [
+        "Rate of 4xx or exception errors on /changelog page load (should be unchanged)",
+        "Median /changelog page render time (should be unchanged within noise)"
       ],
-      "entry_points": [
-        "@/components/changelog/ChangelogFilteredList"
-      ],
-      "path": "__tests__/changelog/filter-url-sync.test.tsx",
-      "source": "import { render, screen, within } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport ChangelogFilteredList from '@/components/changelog/ChangelogFilteredList';\n\nconst mockReplace = jest.fn();\nconst mockPush = jest.fn();\nlet currentParams = new URLSearchParams();\n\njest.mock('next/navigation', () => ({\n  useSearchParams: () => currentParams,\n  useRouter: () => ({ replace: mockReplace, push: mockPush }),\n  usePathname: () => '/changelog',\n}));\n\nconst entries = [\n  { id: 'a', title: 'Firebase logon shipped', description: 'auth work', date: '2025-01-15' },\n  { id: 'b', title: 'Legacy migration completed', description: 'migration', date: '2024-06-01' },\n  { id: 'c', title: 'Payment retry logic', description: 'retry', date: '2025-03-12' },\n  { id: 'd', title: 'Statement layout tweak', description: 'copy', date: '2024-09-09' },\n];\n\nfunction setParams(qs: string) {\n  currentParams = new URLSearchParams(qs);\n}\n\nbeforeEach(() => {\n  mockReplace.mockClear();\n  mockPush.mockClear();\n  setParams('');\n});\n\ndescribe('URL-backed changelog filters', () => {\n  it('AC1: ?year=2024 shows only 2024 entries on load', () => {\n    setParams('year=2024');\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByText('Legacy migration completed')).toBeInTheDocument();\n    expect(screen.getByText('Statement layout tweak')).toBeInTheDocument();\n    expect(screen.queryByText('Firebase logon shipped')).not.toBeInTheDocument();\n    expect(screen.queryByText('Payment retry logic')).not.toBeInTheDocument();\n  });\n\n  it('AC2: ?q=FIREBASE matches case-insensitively; input shows the raw value', () => {\n    setParams('q=FIREBASE');\n    render(<ChangelogFilteredList entries={entries} />);\n    const search = screen.getByRole('searchbox');\n    expect(search).toHaveValue('FIREBASE');\n    expect(screen.getByText('Firebase logon shipped')).toBeInTheDocument();\n    expect(screen.queryByText('Legacy migration completed')).not.toBeInTheDocument();\n  });\n\n  it('AC3: ?year=2025&q=retry combines both filters', () => {\n    setParams('year=2025&q=retry');\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByText('Payment retry logic')).toBeInTheDocument();\n    expect(screen.queryByText('Firebase logon shipped')).not.toBeInTheDocument();\n    expect(screen.queryByText('Legacy migration completed')).not.toBeInTheDocument();\n    expect(screen.queryByText('Statement layout tweak')).not.toBeInTheDocument();\n  });\n\n  it('AC4: ?q= (empty) renders all entries', () => {\n    setParams('q=');\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByText('Firebase logon shipped')).toBeInTheDocument();\n    expect(screen.getByText('Legacy migration completed')).toBeInTheDocument();\n    expect(screen.getByText('Payment retry logic')).toBeInTheDocument();\n    expect(screen.getByText('Statement layout tweak')).toBeInTheDocument();\n  });\n\n  it('AC5: ?q= with only whitespace renders all entries', () => {\n    setParams('q=%20%20%20');\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByText('Firebase logon shipped')).toBeInTheDocument();\n    expect(screen.getByText('Legacy migration completed')).toBeInTheDocument();\n  });\n\n  it('AC6: ?year=notayear is ignored and all entries render', () => {\n    setParams('year=notayear');\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByText('Firebase logon shipped')).toBeInTheDocument();\n    expect(screen.getByText('Legacy migration completed')).toBeInTheDocument();\n    expect(screen.getByText('Statement layout tweak')).toBeInTheDocument();\n  });\n\n  it('AC7: ?year=1999 (unknown numeric year) is ignored and all entries render', () => {\n    setParams('year=1999');\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.getByText('Firebase logon shipped')).toBeInTheDocument();\n    expect(screen.getByText('Legacy migration completed')).toBeInTheDocument();\n  });\n\n  it('AC8: selecting a year calls router.replace (not push) with ?year=', async () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    await userEvent.selectOptions(screen.getByRole('combobox', { name: /year/i }), '2025');\n    expect(mockReplace).toHaveBeenCalled();\n    expect(mockPush).not.toHaveBeenCalled();\n    const [call] = mockReplace.mock.calls.at(-1)!;\n    expect(call).toMatch(/\\/changelog\\?year=2025/);\n  });\n\n  it('AC9: typing in the search box calls router.replace (not push) on each keystroke', async () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    await userEvent.type(screen.getByRole('searchbox'), 'fire');\n    expect(mockReplace).toHaveBeenCalled();\n    expect(mockPush).not.toHaveBeenCalled();\n    const finalUrl = mockReplace.mock.calls.at(-1)![0];\n    expect(finalUrl).toMatch(/\\/changelog\\?q=fire/);\n  });\n\n  it('AC10: clearing the year filter removes ?year rather than leaving ?year=', async () => {\n    setParams('year=2025');\n    render(<ChangelogFilteredList entries={entries} />);\n    await userEvent.selectOptions(screen.getByRole('combobox', { name: /year/i }), '');\n    const finalUrl = mockReplace.mock.calls.at(-1)![0];\n    expect(finalUrl).not.toMatch(/year=/);\n  });\n\n  it('AC11: clearing the search input removes ?q rather than leaving ?q=', async () => {\n    setParams('q=firebase');\n    render(<ChangelogFilteredList entries={entries} />);\n    const search = screen.getByRole('searchbox');\n    await userEvent.clear(search);\n    const finalUrl = mockReplace.mock.calls.at(-1)![0];\n    expect(finalUrl).not.toMatch(/q=/);\n  });\n\n  it('AC12: a filter that matches nothing renders an empty region, not the full list', () => {\n    setParams('q=xyznotamatchxyz');\n    render(<ChangelogFilteredList entries={entries} />);\n    expect(screen.queryByText('Firebase logon shipped')).not.toBeInTheDocument();\n    expect(screen.queryByText('Legacy migration completed')).not.toBeInTheDocument();\n    expect(screen.queryByText('Payment retry logic')).not.toBeInTheDocument();\n    expect(screen.queryByText('Statement layout tweak')).not.toBeInTheDocument();\n  });\n});"
-    },
-    {
-      "covers": [
-        "AC13"
-      ],
-      "entry_points": [
-        "@/app/changelog.xml/route"
-      ],
-      "path": "__tests__/changelog/rss-unaffected.test.ts",
-      "source": "import { GET } from '@/app/changelog.xml/route';\n\nfunction req(url: string) {\n  return new Request(url);\n}\n\ndescribe('RSS feed is unaffected by /changelog filter parameters', () => {\n  it('AC13: response body is identical whether ?year and ?q are present or absent', async () => {\n    const plain = await GET(req('http://localhost/changelog.xml'));\n    const withParams = await GET(req('http://localhost/changelog.xml?year=2025&q=firebase'));\n    const plainBody = await plain.text();\n    const withParamsBody = await withParams.text();\n    expect(withParamsBody).toBe(plainBody);\n  });\n});"
-    }
-  ],
-  "api": [],
-  "assumptions": [
-    {
-      "assumption": "The client component that today owns the year and title filter state is `components/changelog/ChangelogFilteredList.tsx` and is the correct place to add URL-sync logic. If the file lives elsewhere or is named differently, the touches and test entry points should be adjusted accordingly without changing the behaviour specified here.",
-      "confidence": "medium"
-    },
-    {
-      "assumption": "The title-search match is case-insensitive substring today; this spec keeps that behaviour. If the current match is exact or case-sensitive, AC2 pins case-insensitive substring as the intended behaviour.",
-      "confidence": "medium"
-    },
-    {
-      "assumption": "The year filter control offers a single-select of years (with an 'all years' option). If it is a multi-select, ?year= would need to accept a repeated or comma-separated value and this spec would need extension.",
-      "confidence": "high"
-    },
-    {
-      "assumption": "The changelog page (`app/changelog/page.tsx`) is a server component that passes entries to a client filter component; URL parsing therefore happens client-side via `useSearchParams`. Pre-rendering the filtered set server-side from `searchParams` is not required for this change.",
-      "confidence": "medium"
-    }
-  ],
-  "breakouts": [],
-  "clarified_description": "The changelog's year filter and title search currently live in component state only: a reader who has narrowed the list has a view they cannot share (a link goes to the unfiltered list), and a page reload discards the narrowing. This change moves both filters into the URL query string under `?year=` and `?q=`, so a filtered view is shareable, bookmarkable, and reload-safe. The URL is the source of truth on load; user interaction with either filter updates the URL using replace (not push) so the browser Back button leaves `/changelog` rather than stepping through every keystroke or year change. An absent, empty (`?q=`), or whitespace-only parameter means 'no filter'. An unknown `?year` value (non-numeric, or numeric with no matching entry) is ignored \u2014 the full list renders \u2014 rather than an empty list. Both parameters combine when both are present. The RSS feed at `/changelog.xml` is not affected by these parameters.",
-  "component_diagram": null,
-  "constraints": [
-    {
-      "detail": "URL updates on every keystroke must use history.replaceState (via next/navigation router.replace) rather than pushState, so the history stack does not accumulate one entry per character.",
-      "kind": "performance"
-    },
-    {
-      "detail": "The RSS route at /changelog.xml is a separate route and must not observe or honour these parameters; its output is a fixed feed.",
-      "kind": "integration"
-    },
-    {
-      "detail": "Values must be URL-encoded when written and URL-decoded when read; the round-trip must be lossless for the character set typically found in entry titles (spaces, punctuation, unicode).",
-      "kind": "other"
-    }
-  ],
-  "contracts": [
-    {
-      "definition": "URL contract for `/changelog`: two optional query parameters, `year` (integer as a string, e.g. `2025`) and `q` (free text, URL-encoded). Absent, empty, or whitespace-only values mean 'no filter'. Unknown `year` values are ignored. Both may appear together. No other parameters are consumed.",
-      "kind": "api"
-    }
-  ],
-  "contributions_applied": [],
-  "data_changes": [],
-  "data_model": [],
-  "deferred_decisions": [
-    "Whether year-selection URL encoding should support future extensions (multi-year, ranges) is out of scope. If the year filter is ever changed to multi-select, the query parameter shape will need to be extended and this spec re-visited.",
-    "Whether to debounce the `?q=` URL write (e.g. 100ms) is left to the engineer. The spec requires replace-not-push and matching-on-every-keystroke behaviour; if debouncing the URL write (while still filtering the list live) is a cleaner implementation for a given router version, that is acceptable provided the observable behaviour (final URL matches final input, back-navigation is a single hop) is unchanged."
-  ],
-  "feature_id": "a1188b79-7ae4-4df9-8722-d84d859b7947",
-  "flows": [
-    {
-      "kind": "flowchart",
-      "source": "flowchart TD\n  A[Page load with URL] --> B[useSearchParams reads year and q]\n  B --> C{Validate year}\n  C -->|known year| D[apply year filter]\n  C -->|absent, empty, unknown| E[no year filter]\n  B --> F{Trim q}\n  F -->|non-empty| G[apply case-insensitive substring filter]\n  F -->|empty or whitespace| H[no title filter]\n  D --> I[Render filtered list and count]\n  E --> I\n  G --> I\n  H --> I\n  I --> J[User changes filter control]\n  J --> K[Compose new URLSearchParams, omit empty values]\n  K --> L[router.replace new URL, scroll: false]\n  L --> B",
-      "title": "Filter \u2194 URL sync"
-    }
-  ],
-  "must": [
-    "WHEN a visitor opens /changelog with ?year=<value> the system shall set the year filter to that value on load and shall render only entries whose year matches.",
-    "WHEN a visitor opens /changelog with ?q=<value> the system shall populate the title search input with that value on load and shall render only entries whose title contains the value as a case-insensitive substring.",
-    "WHEN a visitor opens /changelog with both ?year and ?q the system shall apply both filters together, rendering only entries that match both.",
-    "IF a query parameter is absent, empty, or contains only whitespace THEN the system shall treat that parameter as no filter.",
-    "IF the ?year value is non-numeric, or is numeric but matches no entry year, THEN the system shall ignore it and render all entries.",
-    "WHEN a visitor changes the year filter control the system shall update the URL query string to reflect the new value using history replace (not push).",
-    "WHEN a visitor types in the title search input the system shall update the URL query string to reflect the new value using history replace (not push).",
-    "WHEN a visitor clears the year filter the system shall remove the ?year parameter from the URL rather than leaving a bare ?year= behind.",
-    "WHEN a visitor clears the title search input the system shall remove the ?q parameter from the URL rather than leaving a bare ?q= behind.",
-    "WHILE any filter is applied the system shall reflect the filtered entry count in the on-page count indicator (the count already shown below the page heading).",
-    "WHEN the applied filters match no entries the system shall render an empty result region rather than the full unfiltered list.",
-    "The system shall leave the RSS feed at /changelog.xml unchanged in content and shape regardless of query-string parameters on /changelog."
-  ],
-  "non_functional": [
-    {
-      "applies": false,
-      "category": "performance",
-      "criteria": [],
-      "target": null,
-      "why_not": "filtering runs client-side over a small in-memory list already loaded on the page; URL-sync work per keystroke is O(1) string composition."
-    },
-    {
-      "applies": false,
-      "category": "availability",
-      "criteria": [],
-      "target": null,
-      "why_not": "no new dependency, network call, or server path is introduced."
-    },
-    {
-      "applies": true,
-      "category": "security",
-      "criteria": [
-        "AC2"
-      ],
-      "target": null,
-      "why_not": null
-    },
-    {
-      "applies": false,
-      "category": "privacy",
-      "criteria": [],
-      "target": null,
-      "why_not": "query parameters are user-supplied filter values (year, free-text search terms) and carry no PII in the intended usage; the values were already held in component state."
-    },
-    {
-      "applies": false,
-      "category": "observability",
-      "criteria": [],
-      "target": null,
-      "why_not": "no server-side handling changes; no new logs or metrics are added."
-    },
-    {
-      "applies": true,
-      "category": "accessibility",
-      "criteria": [
-        "AC1",
-        "AC2"
-      ],
-      "target": "the year filter and title search remain keyboard-navigable and screen-reader announced exactly as they are today; label associations are preserved.",
-      "why_not": null
-    },
-    {
-      "applies": false,
-      "category": "compliance",
-      "criteria": [],
-      "target": null,
-      "why_not": "no regulated data or process is involved."
-    }
-  ],
-  "open_questions": [
-    "The exact filenames of the year-filter and title-search components under `components/changelog/` were not observed directly \u2014 the touches list is based on the conventional name `ChangelogFilteredList`. If this is wrong the engineer should update paths without changing behaviour."
-  ],
-  "outcome": "A reader who has narrowed the changelog to a year, a search term, or both can share the URL and have the recipient see the same view \u2014 and can refresh the page without losing the filter.",
-  "rationale": "**Why the URL is the source of truth, not component state kept in sync with the URL.** Two mechanisms competing to own the same value is where filter-sync bugs live (a keystroke that races a back-navigation, an initial render that reads state before the URL is parsed). Reading `useSearchParams()` on every render and deriving the visible filter from it keeps one source of truth. On user input, we write to the URL and let the re-render pick up the new value.\n\n**Why replace rather than push.** The description called this out and it is the right call: typing 'firebase' pushes six history entries otherwise, and back-navigation from the changelog takes six presses to leave. Replace keeps back-navigation intuitive at the cost of not being able to step through prior filter states \u2014 a fair trade for a filter UI. The year change is also replace for symmetry: a shared link with `?year=2025` should look like arriving on that view, not like arriving on the default view and then changing the filter.\n\n**Why empty and whitespace-only are 'no filter'.** A shared link with a stray `&q=` on the end, or a filter cleared then re-shared, should not behave differently from the unfiltered page. Similarly, whitespace-only search would match every entry anyway (trim before non-empty check), so treating it as 'no filter' is both cleaner and observably identical for matching, with the added benefit that the URL is cleaned up.\n\n**Why unknown year renders all, not none.** A shared link that grows stale (year no longer present in the data) or a hand-typed URL with a typo should degrade to 'full list' rather than 'empty result'. An empty result reads like the changelog has nothing to show, which is misleading; the full list is the safe default and the reader can see immediately that their filter did not take.\n\n**Why RSS is untouched.** The feed is a fixed representation of all entries, consumed by aggregators that do not send query strings. Applying filters to it would silently change what a subscriber pulls; leaving it alone is the boring choice.",
-  "risks": [
-    {
-      "mitigation": "AC9 asserts that `router.push` is never called and that `router.replace` receives the final URL. A regression to push-per-keystroke fails the test.",
-      "reference": null,
-      "severity": "medium",
-      "title": "Every-keystroke URL write pushes to history if replace is misconfigured"
-    },
-    {
-      "mitigation": "Do not use `useState` initialised from `useSearchParams`; derive filter values on every render from `useSearchParams()`. AC1 and AC2 fail if initial paint reads local state that is empty until effect-hydration.",
-      "reference": null,
-      "severity": "medium",
-      "title": "URL becomes the source of truth on subsequent renders, but initial paint reads stale state"
-    },
-    {
-      "mitigation": "AC6 (non-numeric) and AC7 (numeric-but-unknown) both assert the full list renders. Both are exercised in the test suite.",
-      "reference": null,
-      "severity": "low",
-      "title": "Unknown year silently blanks the list rather than falling back to all"
-    },
-    {
-      "mitigation": "AC10 and AC11 assert the parameters are removed, not left with an empty value; both are tested.",
-      "reference": null,
-      "severity": "low",
-      "title": "Bare `?q=` or `?year=` re-appears after clear"
-    }
-  ],
-  "rollout": null,
-  "schema_version": 8,
-  "should": [
-    "WHEN the URL contains a ?q value with URL-encoded characters (spaces, punctuation) the system shall decode the value before matching, so that a shared link matches the same entries as the input that produced it."
-  ],
-  "standards_applied": [
-    {
-      "applies": false,
-      "criteria": [],
-      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
-      "why_not": "this change adjusts filter plumbing only; no date rendering is added or altered."
-    },
-    {
-      "applies": false,
-      "criteria": [],
-      "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
-      "why_not": "no database is written to; the change is entirely a URL-and-DOM sync in a client component."
-    },
-    {
-      "applies": true,
-      "criteria": [
-        "AC2",
-        "AC3",
-        "AC5",
-        "AC6",
-        "AC7",
-        "AC8",
-        "AC9",
-        "AC10",
-        "AC11"
-      ],
-      "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
-      "why_not": null
-    },
-    {
-      "applies": false,
-      "criteria": [],
-      "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
-      "why_not": "every acceptance criterion in this spec is covered by a test in acceptance_tests[]; there is no uncovered criterion for this standard to govern."
-    },
-    {
-      "applies": false,
-      "criteria": [],
-      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
-      "why_not": "no customer-facing copy is added or modified; only two URL parameters are read and written."
-    }
-  ],
-  "swe_constraints": [
-    "Use `useSearchParams()` and `useRouter()` from `next/navigation` (Next.js 16 App Router). Read `AGENTS.md` at repo root \u2014 the note about Next.js breaking changes applies; consult `node_modules/next/dist/docs/` for the current router API before writing code.",
-    "Use `router.replace(pathname + '?' + params.toString(), { scroll: false })` rather than `router.push` for every URL update. `scroll: false` prevents the page jumping to the top on a filter change.",
-    "Do not maintain a parallel `useState` for filter values in addition to reading `useSearchParams`. Deriving from search params on each render is the single source of truth; a mirror in state re-introduces the sync bug this feature exists to remove.",
-    "When writing the URL, omit parameters whose value is empty or whitespace-only. Do not emit `?q=` or `?year=` with an empty value.",
-    "Trim the `q` value before matching. Preserve the original (trimmed) casing in the input display; lowercase both sides only for the comparison.",
-    "For the year filter: parse the `?year` value with `Number.parseInt(v, 10)`. Reject `NaN` and any value not present in the derived set of entry years \u2014 treat both as 'no filter'.",
-    "For character-safety on the wire, use `URLSearchParams` (which handles encoding) rather than string concatenation.",
-    "Do not add any dependency to satisfy this change. `next/navigation` and `URLSearchParams` are sufficient."
-  ],
-  "touches": [
-    {
-      "exists": true,
-      "path": "app/changelog/page.tsx",
-      "reason": "the page that renders the changelog and mounts the filter component; may need to acknowledge that filters are now URL-driven (no `use client` change expected if it already delegates to a client component)."
-    },
-    {
-      "exists": true,
-      "path": "components/changelog/ChangelogFilteredList.tsx",
-      "reason": "the client component that owns year-filter and title-search state today; this is where the state migrates from `useState` to being derived from `useSearchParams` and where change handlers call `router.replace`."
-    },
-    {
-      "exists": false,
-      "path": "__tests__/changelog/filter-url-sync.test.tsx",
-      "reason": "new test file covering the URL-sync acceptance criteria; other tests in `__tests__/changelog/` continue to cover the pre-existing filter behaviour and must still pass."
-    },
-    {
-      "exists": true,
-      "path": "app/changelog.xml/route.ts",
-      "reason": "named to make explicit that this route is NOT modified \u2014 AC13 asserts its unchanged behaviour. The engineer should verify no shared helper is refactored in a way that alters its output."
-    }
-  ],
-  "user_stories": [
-    {
-      "criteria": [
-        "The URL updates as I change filters",
-        "Opening a URL with ?year and/or ?q pre-populates the controls and filters the list on load",
-        "Pressing the browser Back button once takes me off /changelog, not through my typing history"
-      ],
-      "references": [],
-      "role": "changelog reader",
-      "so_that": "I can share, bookmark, and reload a filtered view without losing it",
-      "want": "the year I've selected and the search text I've typed to be reflected in the URL"
-    }
-  ],
-  "users": [
-    {
-      "jobs_to_be_done": [
-        "Point a colleague at a specific set of changelog entries (e.g. 'everything about Firebase in 2025')",
-        "Bookmark a filtered view for quick return",
-        "Refresh the page mid-read without losing their place"
-      ],
-      "name": "Changelog reader sharing a specific view",
-      "pain_points": [
-        "The URL always looks like /changelog; there is nothing to copy that preserves the filter",
-        "A reload snaps back to the full unfiltered list",
-        "Back-navigation walks through every keystroke of the search \u2014 six presses to leave a page after typing 'fire'"
+      "stages": [
+        "Development",
+        "UAT",
+        "Production canary",
+        "Full release"
       ]
-    }
-  ],
-  "wireframes": [],
-  "wont": [
-    "The system will not auto-focus the search input on load when a query parameter is present \u2014 a shared link is opened to be read, not edited.",
-    "The system will not persist filters across separate visits by any mechanism other than the URL (no cookies, no localStorage).",
-    "The system will not introduce query parameters beyond ?year and ?q; no pagination, sort, or category parameters are added.",
-    "The system will not change the RSS feed to accept or honour these parameters."
-  ]
+    },
+    "schema_version": 8,
+    "should": [
+      "The system shall omit a query parameter from the URL when its corresponding filter is at its default (no year selected, empty search) rather than emitting `?year=&q=`."
+    ],
+    "standards_applied": [
+      {
+        "applies": false,
+        "criteria": [],
+        "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+        "why_not": "This change moves filter state into the URL. It does not add, remove, or reformat any date or time display in the changelog; the existing entry date rendering is untouched."
+      },
+      {
+        "applies": false,
+        "criteria": [],
+        "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
+        "why_not": "This change writes nothing to a database. It reads entries from a static JSON file and updates browser URL state via history.replaceState \u2014 no persistence layer is involved."
+      },
+      {
+        "applies": true,
+        "criteria": [
+          "AC2",
+          "AC3",
+          "AC5",
+          "AC8",
+          "AC9",
+          "AC10",
+          "AC14"
+        ],
+        "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
+        "why_not": null
+      },
+      {
+        "applies": true,
+        "criteria": [
+          "AC11"
+        ],
+        "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
+        "why_not": null
+      },
+      {
+        "applies": false,
+        "criteria": [],
+        "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+        "why_not": "No customer-facing copy is added or altered. Existing entry titles pass through unchanged; only their filtering mechanism changes."
+      }
+    ],
+    "swe_constraints": [
+      "Use `next/navigation` hooks: `useSearchParams` for reads, `useRouter` for `.replace()` writes, `usePathname` if needed to preserve the pathname on replace. Do not import from `next/router` (that is the pre-App-Router API).",
+      "The client component must remain `'use client'`. Wrap it in `<Suspense>` inside `app/changelog/page.tsx`; a `useSearchParams` consumer without a Suspense boundary above it fails the App Router build.",
+      "Read `?q=` once at mount and on every change, apply `.slice(0, 200)` before it is stored in state or passed to `TitleSearch`. The input `value` prop and the filter predicate operate on the truncated string.",
+      "Read `?year=` as a string; coerce via `Number.parseInt(value, 10)` and compare against the derived `years[]`. If the parse fails or the year is not present, fall back to `null` \u2014 never render an empty list because of a stale link.",
+      "Writes must use `router.replace(nextUrl, { scroll: false })` (or the Next 16 equivalent \u2014 engineer to confirm from vendored docs). Preserve the pathname; only mutate the query string. Omit parameters at their default rather than emitting empty values.",
+      "Trim `q` before deciding whether the filter is active, but preserve the untrimmed value in the input so a user's leading space during typing is not eaten from under their caret.",
+      "Do not auto-focus either control on mount; leave `document.activeElement` where it was.",
+      "Match the existing controlled-component contract of `YearFilter` and `TitleSearch` \u2014 their `props` interfaces should not change."
+    ],
+    "touches": [
+      {
+        "exists": true,
+        "path": "components/changelog/ChangelogFilteredList.tsx",
+        "reason": "Primary change target \u2014 replace `useState` for `selectedYear` and `searchQuery` with URL-backed reads via `useSearchParams` and writes via `router.replace`. Apply the 200-character bound to `q` at read time."
+      },
+      {
+        "exists": true,
+        "path": "app/changelog/page.tsx",
+        "reason": "Server component parent. Next.js 16 requires a `<Suspense>` boundary around a `useSearchParams` consumer rendered from a server component; wrap `<ChangelogFilteredList />` in one."
+      },
+      {
+        "exists": true,
+        "path": "__tests__/changelog/ChangelogFilteredList.test.tsx",
+        "reason": "Existing tests render `ChangelogFilteredList` directly. Once the component calls `useSearchParams` and `useRouter`, these tests need `next/navigation` mocked at module level."
+      },
+      {
+        "exists": true,
+        "path": "__tests__/changelog/title-search.test.tsx",
+        "reason": "Same as above \u2014 renders `ChangelogFilteredList` and needs the `next/navigation` mock."
+      },
+      {
+        "exists": true,
+        "path": "__tests__/changelog/ChangelogFilteredList.counts.test.tsx",
+        "reason": "Same as above \u2014 renders `ChangelogFilteredList` and needs the `next/navigation` mock."
+      },
+      {
+        "exists": true,
+        "path": "__tests__/changelog/ChangelogPage.test.tsx",
+        "reason": "Renders the server `ChangelogPage`, which now wraps the client component in `<Suspense>`. Verify the existing assertions still pass and the mock covers the Suspense fallback path."
+      },
+      {
+        "exists": false,
+        "path": "__tests__/changelog/ChangelogFilteredList.urlparams.test.tsx",
+        "reason": "New test file covering URL-param initialisation, replace-not-push, unknown/empty/whitespace handling, the 200-character bound, and no-focus-on-load. Convention: tests mirror source under `__tests__/changelog/`."
+      }
+    ],
+    "user_stories": [
+      {
+        "criteria": [
+          "Opening a shared link with ?year= and ?q= shows the same filtered set the sender saw",
+          "Reloading preserves the filtered view",
+          "Back leaves the changelog rather than replaying my keystrokes",
+          "A long or malformed link still shows sensible results \u2014 never an empty list or a runaway string"
+        ],
+        "references": [],
+        "role": "changelog reader",
+        "so_that": "I can share a filtered view and reload without losing it",
+        "want": "the year and title filters to live in the URL"
+      }
+    ],
+    "users": [
+      {
+        "jobs_to_be_done": [
+          "Show a colleague only the entries about a particular feature area",
+          "Bookmark 'this year's changes' and return to it"
+        ],
+        "name": "Changelog reader sharing a filtered view",
+        "pain_points": [
+          "Copying the /changelog URL sends the recipient the unfiltered list",
+          "Refreshing after narrowing loses the narrowed view and requires re-typing"
+        ]
+      }
+    ],
+    "wireframes": [],
+    "wont": [
+      "The system shall not pre-render the filtered set server-side from `searchParams`; URL parsing happens client-side in `ChangelogFilteredList`.",
+      "The system shall not alter the RSS feed at /changelog.xml \u2014 the query string is a browser-only concern.",
+      "The system shall not add any new filter dimensions beyond year and title; only the existing two move into the URL.",
+      "The system shall not change the visible styling, labels, or ARIA of the `YearFilter` or `TitleSearch` controls."
+    ]
+  }
 }
