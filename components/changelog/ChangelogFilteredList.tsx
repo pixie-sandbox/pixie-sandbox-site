@@ -66,7 +66,7 @@ export default function ChangelogFilteredList({ entries }: ChangelogFilteredList
         />
       </div>
       {filtered.length === 0 ? (
-        <p>No entries match.</p>
+        <p className="text-base leading-7 text-zinc-600 dark:text-zinc-400">No entries match.</p>
       ) : (
         <ChangelogList entries={filtered} />
       )}
