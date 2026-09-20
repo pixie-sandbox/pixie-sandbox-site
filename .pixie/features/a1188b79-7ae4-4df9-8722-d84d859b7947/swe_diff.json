@@ -1,0 +1,136 @@
+{
+  "branch": "pixie/a1188b79-7ae4-4df9-8722-d84d859b7947",
+  "decisions_log": [
+    {
+      "decision": "Used module-level `import { useReducer } from 'react'` referenced inside the jest.mock factory rather than `require('react')` inside the factory body.",
+      "rationale": "The eslint-config-next/typescript config enforces @typescript-eslint/no-require-imports. jest.mock factories are closures \u2014 the factory is called lazily (when the mocked module is first required), by which time the top-level import has been resolved. Referencing a top-level import binding inside the factory is safe and avoids the lint violation."
+    },
+    {
+      "decision": "Reactive mock: router.replace updates shared _currentParams and calls _forceUpdate() (a useReducer dispatcher captured during the last render) to trigger a React re-render.",
+      "rationale": "ChangelogFilteredList derives all filter state from useSearchParams on every render. Without a re-render after router.replace, existing fireEvent-driven tests would fail because the component would keep showing the pre-interaction state. The reactive mock makes the test environment behave like Next.js, where a URL change causes the router to re-render affected components."
+    },
+    {
+      "decision": "Added @jest-environment node pragma to rss-unaffected.test.ts.",
+      "rationale": "The /changelog.xml route handler uses the Web API Response class. The default jsdom test environment does not expose Response as a global. Node.js 18+ (and this project runs Node 25) exposes Response globally. Using the node test environment for this server-side route test is the correct approach and avoids adding a polyfill dependency."
+    },
+    {
+      "decision": "The AC13 RSS test calls GET() twice (no arguments) rather than passing a Request with and without query params.",
+      "rationale": "The route.ts GET function signature takes no parameters \u2014 it reads only from changelog.json and ignores any request input. Passing a Request would cause a TypeScript error. Calling GET() twice proves deterministic output; the absence of query-string handling in the route source is the true assertion of AC13."
+    },
+    {
+      "decision": "Wrapped ChangelogFilteredList in <Suspense> in app/changelog/page.tsx with no fallback prop.",
+      "rationale": "Next.js App Router requires a Suspense boundary around client components that call useSearchParams when rendered from a server component. No fallback is needed here because ChangelogFilteredList always renders synchronously (it does not actually suspend); the Suspense boundary is structural, not for async data-loading."
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "The 'Should' criterion (URL-encoded ?q values decoded before matching) is covered automatically by URLSearchParams.get(), which URL-decodes values. No explicit test was added for this because the standard library handles it. If a specific encoded-char test is required, it can be added to filter-url-sync.test.tsx without any implementation change."
+    }
+  ],
+  "feature_id": "a1188b79-7ae4-4df9-8722-d84d859b7947",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "summary": "Replaced useState for selectedYear and searchQuery with URL-backed state: useSearchParams reads ?year= and ?q= on every render; handleYearChange and handleSearchChange write via router.replace (not push) with scroll:false. Unknown year values and empty/whitespace query params are ignored (fall back to no filter). usePathname used to build the replacement URL."
+    },
+    {
+      "change_kind": "modified",
+      "path": "app/changelog/page.tsx",
+      "summary": "Imported Suspense from React and wrapped ChangelogFilteredList in a <Suspense> boundary, as required by Next.js App Router when a server component renders a client component that calls useSearchParams."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog/ChangelogFilteredList.test.tsx",
+      "summary": "Added reactive next/navigation mock (useSearchParams + useRouter). The mock uses useReducer to trigger re-renders when router.replace is called, so existing fireEvent-driven filter tests continue to produce correct DOM updates."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog/title-search.test.tsx",
+      "summary": "Added same reactive next/navigation mock as ChangelogFilteredList.test.tsx."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog/ChangelogFilteredList.counts.test.tsx",
+      "summary": "Added same reactive next/navigation mock as ChangelogFilteredList.test.tsx."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/changelog/ChangelogPage.test.tsx",
+      "summary": "Added simple static next/navigation mock (ChangelogPage tests only check initial render with no URL params)."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx",
+      "summary": "New test file covering AC1\u2013AC12: URL-param initialisation (?year=, ?q=, both, empty, whitespace-only, unknown year), router.replace called on filter change, params removed on clear, empty-result state."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/rss-unaffected.test.ts",
+      "summary": "New test file covering AC13: the /changelog.xml route handler produces identical output on successive calls, confirming query-string parameters have no effect on RSS output. Uses @jest-environment node to access the Response Web API."
+    }
+  ],
+  "pr_ref": "stub://pr/a1188b79-7ae4-4df9-8722-d84d859b7947",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 195 tests pass (182 pre-existing + 13 new). Lint clean. Build succeeds with /changelog prerendered as static (expected \u2014 the Suspense boundary allows Next.js to statically render the page shell; useSearchParams is read client-side). The reactive mock pattern (useReducer in useSearchParams mock, forceUpdate in router.replace mock) preserves the existing test suite's fireEvent-driven filter interaction tests while adding the new URL-sync tests. No dependencies were added."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC6",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC7",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC8",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC9",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC10",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC11",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC12",
+      "path": "__tests__/changelog/filter-url-sync.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC13",
+      "path": "__tests__/changelog/rss-unaffected.test.ts"
+    }
+  ]
+}
