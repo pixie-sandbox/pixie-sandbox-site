@@ -49,7 +49,9 @@ export default function ChangelogFilteredList({ entries }: ChangelogFilteredList
     !Number.isNaN(parsedYear) && validYears.has(parsedYear) ? parsedYear : null;
 
   // ?q=: treat absent, empty, or whitespace-only as no filter.
-  const qParam = searchParams.get('q') ?? '';
+  // Bound at 200 characters at read time so a shared link cannot force an
+  // unbounded substring scan on every render (AC14).
+  const qParam = (searchParams.get('q') ?? '').slice(0, 200);
   const searchQuery = qParam;
 
   // Write URL helpers — use router.replace (not push) to avoid history stack growth.

@@ -183,4 +183,20 @@ describe('URL-backed changelog filters', () => {
     expect(screen.getByText('No entries match.')).toBeInTheDocument();
     expect(screen.getByText('0 entries')).toBeInTheDocument();
   });
+
+  it('AC14: ?q= longer than 200 characters is truncated to 200 at read time; input value is the 200-char prefix', () => {
+    // Construct a q value that is 500 chars total.
+    // The first 200 chars are 'firebase' padded with 'x' — a value that is
+    // unambiguously different from the 500-char full string.
+    // Without truncation, input.value.length would be 500 and .toHaveLength(200)
+    // would fail, making this a discriminating test for the slice(0,200) bound.
+    const prefix = 'firebase'.padEnd(200, 'x'); // 200 chars
+    const tail = 'z'.repeat(300); // 300 chars
+    setParams('q=' + encodeURIComponent(prefix + tail));
+    render(<ChangelogFilteredList entries={entries} />);
+    const input = screen.getByRole('textbox', { name: /search/i }) as HTMLInputElement;
+    expect(input.value).toHaveLength(200);
+    expect(input.value).toBe(prefix);
+    expect(input.value).not.toContain('z');
+  });
 });
