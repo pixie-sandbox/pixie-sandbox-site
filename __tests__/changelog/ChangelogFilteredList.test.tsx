@@ -123,7 +123,7 @@ describe('ChangelogFilteredList — count styling', () => {
 });
 
 describe('ChangelogFilteredList — empty state (AC10)', () => {
-  it('AC10: shows "0 entries", only "All years" option, and an empty list when entries is empty', () => {
+  it('AC10: shows "0 entries", only "All years" option, and "No entries match." when entries is empty', () => {
     render(<ChangelogFilteredList entries={[]} />);
 
     expect(screen.getByText('0 entries')).toBeInTheDocument();
@@ -133,8 +133,8 @@ describe('ChangelogFilteredList — empty state (AC10)', () => {
     expect(options).toHaveLength(1);
     expect(options[0]).toHaveTextContent('All years');
 
-    const feed = screen.getByRole('feed');
-    expect(feed).toBeEmptyDOMElement();
+    expect(screen.getByText('No entries match.')).toBeInTheDocument();
+    expect(screen.queryByRole('feed')).not.toBeInTheDocument();
   });
 });
 
