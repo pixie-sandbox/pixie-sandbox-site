@@ -1,0 +1,32 @@
+{
+  "branch": "pixie/d61fb302-1a0d-4076-9dc5-b5343bb5a68c",
+  "decisions_log": [
+    {
+      "decision": "Gave the 'No entries match.' paragraph the same Tailwind classes as the count line: text-base leading-7 text-zinc-600 dark:text-zinc-400",
+      "rationale": "The reviewer noted the line had no CSS classes while every other muted paragraph on the page carries these classes. In dark mode it rendered in the default (bright) foreground colour rather than the muted zinc-400 colour used consistently elsewhere. The fix is a single className addition matching the count paragraph directly above."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "d61fb302-1a0d-4076-9dc5-b5343bb5a68c",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "summary": "Added muted paragraph classes (text-base leading-7 text-zinc-600 dark:text-zinc-400) to the 'No entries match.' paragraph so it matches the styling of the count line above it."
+    }
+  ],
+  "pr_ref": "stub://pr/d61fb302-1a0d-4076-9dc5-b5343bb5a68c",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "This revision addresses only the reviewer's specific objection: the missing CSS classes on the 'No entries match.' paragraph. The string and the AC5 assertion are unchanged. All 182 tests pass. Lint is clean."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/changelog/title-search.test.tsx"
+    }
+  ]
+}
