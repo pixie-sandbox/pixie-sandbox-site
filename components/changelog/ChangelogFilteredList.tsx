@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { type ChangelogEntryData } from '@/components/changelog/ChangelogEntry';
 import ChangelogList from '@/components/changelog/ChangelogList';
 import TitleSearch from '@/components/changelog/TitleSearch';
@@ -16,12 +16,15 @@ interface ChangelogFilteredListProps {
  * the supplied entries, filters before passing to ChangelogList, and renders
  * the entry count and filter control above the list.
  *
- * This component is a 'use client' boundary so that useState-based interactivity
- * can live in a child of the server ChangelogPage component.
+ * Filter state is URL-backed: ?year= and ?q= are read on every render via
+ * useSearchParams, and changes are written back via router.replace (not push)
+ * so that the browser Back button leaves /changelog rather than stepping through
+ * every keystroke or year change.
  */
 export default function ChangelogFilteredList({ entries }: ChangelogFilteredListProps) {
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Derive per-year counts and sorted-unique year list from entries, newest year first.
   // Year extraction relies on the ISO 8601 date convention in data/changelog.json.
@@ -36,6 +39,38 @@ export default function ChangelogFilteredList({ entries }: ChangelogFilteredList
     .sort((a, b) => b - a)
     .map((year) => ({ year, count: yearCountMap[year] }));
   const totalCount = entries.length;
+  const validYears = new Set(years.map((y) => y.year));
+
+  // Derive filter values from URL search params on every render (URL is source of truth).
+  // ?year=: parse as integer; ignore NaN and years not in the dataset.
+  const yearParam = searchParams.get('year');
+  const parsedYear = yearParam !== null ? Number.parseInt(yearParam, 10) : NaN;
+  const selectedYear: number | null =
+    !Number.isNaN(parsedYear) && validYears.has(parsedYear) ? parsedYear : null;
+
+  // ?q=: treat absent, empty, or whitespace-only as no filter.
+  // Bound at 200 characters at read time so a shared link cannot force an
+  // unbounded substring scan on every render (AC14).
+  const qParam = (searchParams.get('q') ?? '').slice(0, 200);
+  const searchQuery = qParam;
+
+  // Write URL helpers — use router.replace (not push) to avoid history stack growth.
+  function updateUrl(year: number | null, q: string) {
+    const params = new URLSearchParams();
+    if (year !== null) params.set('year', String(year));
+    const trimmedQ = q.trim();
+    if (trimmedQ.length > 0) params.set('q', trimmedQ);
+    const qs = params.toString();
+    router.replace(qs.length > 0 ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+
+  function handleYearChange(year: number | null) {
+    updateUrl(year, searchQuery);
+  }
+
+  function handleSearchChange(q: string) {
+    updateUrl(selectedYear, q);
+  }
 
   // Apply year filter first, then title search. Both conditions must match (AND).
   // Whitespace-only search is treated as empty — no additional filtering applied.
@@ -57,12 +92,12 @@ export default function ChangelogFilteredList({ entries }: ChangelogFilteredList
         {countText}
       </p>
       <div className="flex items-center gap-4">
-        <TitleSearch value={searchQuery} onChange={setSearchQuery} />
+        <TitleSearch value={searchQuery} onChange={handleSearchChange} />
         <YearFilter
           years={years}
           totalCount={totalCount}
           selected={selectedYear}
-          onChange={setSelectedYear}
+          onChange={handleYearChange}
         />
       </div>
       {filtered.length === 0 ? (
