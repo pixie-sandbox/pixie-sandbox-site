@@ -1,0 +1,46 @@
+# Release to Production — the deployment Pixie's deploy gate gates.
+#
+# Why this exists at all: the site itself is deployed by Vercel, which
+# creates GitHub Deployments through the REST API. Those bypass environment
+# protection rules entirely — a custom protection rule is only consulted for
+# a *GitHub Actions* job that names an `environment:`. So without a job like
+# this one, nothing ever waits on Pixie and the gate can never fire.
+#
+# The deployment is real: GitHub creates it, holds it on the Production
+# environment's protection rules, delivers `deployment_protection_rule` to
+# the Pixie Sandbox Agent App, and will not run `release` until the App
+# answers. What the job then *does* is deliberately trivial — the thing
+# under test is the gate, not the shipping. When the site's real promotion
+# moves into Actions, it replaces the body of `release` and nothing about
+# the gate changes.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Why this release is being cut
+        required: false
+        default: Exercising the deploy gate
+
+concurrency:
+  group: release-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # This line is the whole point: naming the environment is what makes
+    # GitHub evaluate its protection rules and hold the deployment.
+    environment:
+      name: Production
+      url: https://pixie-sandbox-site.vercel.app
+    steps:
+      - name: Say what was released
+        run: |
+          echo "Released ${GITHUB_SHA} to Production."
+          echo "Reason: ${{ inputs.reason }}"
