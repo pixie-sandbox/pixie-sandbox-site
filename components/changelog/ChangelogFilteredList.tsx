@@ -1,10 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { type ChangelogEntryData } from '@/components/changelog/ChangelogEntry';
 import ChangelogList from '@/components/changelog/ChangelogList';
 import TitleSearch from '@/components/changelog/TitleSearch';
 import YearFilter from '@/components/changelog/YearFilter';
+
+/**
+ * Maximum number of characters stored in the ?q= URL parameter.
+ * Read and write paths both apply this cap so a shared link never carries
+ * more than the page will read back.
+ */
+const QUERY_MAX_LENGTH = 200;
 
 interface ChangelogFilteredListProps {
   /** All changelog entries, pre-sorted newest-first by the server page. */
@@ -49,32 +57,41 @@ export default function ChangelogFilteredList({ entries }: ChangelogFilteredList
     !Number.isNaN(parsedYear) && validYears.has(parsedYear) ? parsedYear : null;
 
   // ?q=: treat absent, empty, or whitespace-only as no filter.
-  // Bound at 200 characters at read time so a shared link cannot force an
-  // unbounded substring scan on every render (AC14).
-  const qParam = (searchParams.get('q') ?? '').slice(0, 200);
+  // Bound at QUERY_MAX_LENGTH characters at read time so a shared link cannot
+  // force an unbounded substring scan on every render (AC14).
+  const qParam = (searchParams.get('q') ?? '').slice(0, QUERY_MAX_LENGTH);
   const searchQuery = qParam;
+
+  // Local state for the search input. Initialized from the URL-derived searchQuery
+  // so that opening a shared link populates the input correctly. Held separately so
+  // that what the reader typed is preserved in the input even though the URL write
+  // path caps at QUERY_MAX_LENGTH — the reader sees the full string they entered.
+  const [inputValue, setInputValue] = useState(searchQuery);
 
   // Write URL helpers — use router.replace (not push) to avoid history stack growth.
   function updateUrl(year: number | null, q: string) {
     const params = new URLSearchParams();
     if (year !== null) params.set('year', String(year));
-    const trimmedQ = q.trim();
+    // Cap the URL value at QUERY_MAX_LENGTH — same bound as the read path (above)
+    // so a shared link never carries more than the page will read back.
+    const trimmedQ = q.trim().slice(0, QUERY_MAX_LENGTH);
     if (trimmedQ.length > 0) params.set('q', trimmedQ);
     const qs = params.toString();
     router.replace(qs.length > 0 ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
   function handleYearChange(year: number | null) {
-    updateUrl(year, searchQuery);
+    updateUrl(year, inputValue);
   }
 
   function handleSearchChange(q: string) {
+    setInputValue(q);
     updateUrl(selectedYear, q);
   }
 
   // Apply year filter first, then title search. Both conditions must match (AND).
   // Whitespace-only search is treated as empty — no additional filtering applied.
-  const trimmedQuery = searchQuery.trim().toLowerCase();
+  const trimmedQuery = inputValue.trim().toLowerCase();
   const filtered = entries.filter((e) => {
     const yearMatch =
       selectedYear === null || new Date(e.date).getUTCFullYear() === selectedYear;
@@ -92,7 +109,7 @@ export default function ChangelogFilteredList({ entries }: ChangelogFilteredList
         {countText}
       </p>
       <div className="flex items-center gap-4">
-        <TitleSearch value={searchQuery} onChange={handleSearchChange} />
+        <TitleSearch value={inputValue} onChange={handleSearchChange} />
         <YearFilter
           years={years}
           totalCount={totalCount}
