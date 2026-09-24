@@ -1,0 +1,277 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "the changelog page is rendered with entries and an empty search input",
+      "id": "AC1",
+      "then": "the URL no longer carries a ?q= parameter",
+      "when": "the reader clears the search input after typing into it"
+    },
+    {
+      "given": "the changelog page is rendered with entries",
+      "id": "AC2",
+      "then": "the URL's ?q= parameter carries the whole value verbatim",
+      "when": "the reader types a search value under 200 characters (for example 'release notes')"
+    },
+    {
+      "given": "the changelog page is rendered with entries",
+      "id": "AC3",
+      "then": "the URL's ?q= parameter carries all 200 characters unchanged",
+      "when": "the reader enters a search value of exactly 200 characters"
+    },
+    {
+      "given": "the changelog page is rendered with entries",
+      "id": "AC4",
+      "then": "the URL's ?q= parameter carries only the first 200 characters and drops the 201st",
+      "when": "the reader enters a search value of 201 characters"
+    },
+    {
+      "given": "the changelog page is rendered with entries",
+      "id": "AC5",
+      "then": "the URL's ?q= parameter carries only the first 200 characters AND the search input continues to display the full 500-character string",
+      "when": "the reader pastes a search value of 500 characters"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5"
+      ],
+      "entry_points": [
+        "@/components/changelog/ChangelogFilteredList"
+      ],
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx",
+      "source": "import { render, screen, fireEvent } from '@testing-library/react';\nimport ChangelogFilteredList from '@/components/changelog/ChangelogFilteredList';\n\nconst mockReplace = jest.fn();\n\njest.mock('next/navigation', () => ({\n  useRouter: () => ({ replace: mockReplace, push: jest.fn() }),\n  useSearchParams: () => new URLSearchParams(),\n  usePathname: () => '/changelog',\n}));\n\nconst entries = [\n  {\n    title: 'First entry',\n    description: 'Something shipped.',\n    date: '2026-01-01',\n    slug: 'first',\n  },\n  {\n    title: 'Second entry',\n    description: 'Another change.',\n    date: '2026-02-01',\n    slug: 'second',\n  },\n];\n\nconst getLatestReplacedUrl = (): URL | null => {\n  const calls = mockReplace.mock.calls;\n  if (calls.length === 0) return null;\n  const arg = calls[calls.length - 1][0];\n  return new URL(String(arg), 'http://localhost');\n};\n\nconst getSearchInput = (): HTMLInputElement => {\n  const byRole = screen.queryByRole('searchbox');\n  if (byRole) return byRole as HTMLInputElement;\n  return screen.getByRole('textbox') as HTMLInputElement;\n};\n\ndescribe('changelog search URL cap on write', () => {\n  beforeEach(() => {\n    mockReplace.mockClear();\n  });\n\n  it('AC1: clearing the input removes ?q= from the URL', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = getSearchInput();\n    fireEvent.change(input, { target: { value: 'anything' } });\n    fireEvent.change(input, { target: { value: '' } });\n    const url = getLatestReplacedUrl();\n    expect(url).not.toBeNull();\n    expect(url!.searchParams.get('q')).toBeNull();\n  });\n\n  it('AC2: a short query is written to ?q= verbatim', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = getSearchInput();\n    fireEvent.change(input, { target: { value: 'release notes' } });\n    const url = getLatestReplacedUrl();\n    expect(url).not.toBeNull();\n    expect(url!.searchParams.get('q')).toBe('release notes');\n  });\n\n  it('AC3: a value of exactly 200 characters is written in full', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = getSearchInput();\n    const value = 'a'.repeat(200);\n    fireEvent.change(input, { target: { value } });\n    const url = getLatestReplacedUrl();\n    expect(url).not.toBeNull();\n    expect(url!.searchParams.get('q')).toBe(value);\n    expect(url!.searchParams.get('q')!.length).toBe(200);\n  });\n\n  it('AC4: a value of 201 characters is capped to the first 200 in the URL', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = getSearchInput();\n    const first200 = 'b'.repeat(200);\n    const value = first200 + 'X';\n    fireEvent.change(input, { target: { value } });\n    const url = getLatestReplacedUrl();\n    expect(url).not.toBeNull();\n    const q = url!.searchParams.get('q');\n    expect(q).toBe(first200);\n    expect(q!.length).toBe(200);\n  });\n\n  it('AC5: a 500-character paste caps the URL at 200 but leaves the input showing the full value', () => {\n    render(<ChangelogFilteredList entries={entries} />);\n    const input = getSearchInput();\n    const value = 'c'.repeat(500);\n    fireEvent.change(input, { target: { value } });\n    expect(input.value).toBe(value);\n    expect(input.value.length).toBe(500);\n    const url = getLatestReplacedUrl();\n    expect(url).not.toBeNull();\n    const q = url!.searchParams.get('q');\n    expect(q).toBe('c'.repeat(200));\n    expect(q!.length).toBe(200);\n  });\n});"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The search input and the code that writes ?q= to the URL both live in components/changelog/ChangelogFilteredList.tsx, as implied by the shipped 'A filtered changelog view can be shared' spec and the note that the entry count and filter state moved into that component.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The read-path 200-character cap is implemented in the same component or a helper it uses, so a shared constant is available or can be introduced with no wider ripple.",
+      "confidence": "medium"
+    },
+    {
+      "assumption": "The URL is updated via next/navigation's useRouter().replace() (or push()) rather than a direct history.replaceState call; this is the standard Next.js 16 client-navigation pattern.",
+      "confidence": "medium"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "The changelog page has a title search whose value is mirrored into the URL as ?q=. When a link is opened the read path caps ?q= at 200 characters, so the input, the filter and the URL all agree on at most 200 characters of search. The write path has no matching cap: while a reader types or pastes into the search input, whatever they enter is written to the URL verbatim, so a paste of 5000 characters produces a shareable link with a 5000-character ?q=. Any reader who opens that link still only sees the first 200 characters \u2014 the tail is data that travels with the link and is never used. Security review on PR #22 flagged this. The fix applies the same 200-character cap on the write path so the URL never carries more than the page will read back. The search input itself is deliberately left alone: the reader continues to see what they typed or pasted, and only the URL is trimmed.",
+  "component_diagram": null,
+  "constraints": [
+    {
+      "detail": "The ?q= URL parameter written by the search input must never carry more than 200 characters, regardless of the input's own value.",
+      "kind": "security"
+    },
+    {
+      "detail": "The 200-character limit must match the read-path cap already in place; if a shared constant exists it must be reused rather than duplicated.",
+      "kind": "integration"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [
+    "Whether the 200-character substring is inlined at the call site or extracted into a named helper (e.g. capQuery). Either is acceptable as long as it's the same constant the read path uses.",
+    "Whether to add an inline comment linking the write-path cap to the read-path cap so a future reader sees the two are one invariant. Recommended but not required.",
+    "The exact search-input accessible name/label used in the acceptance tests \u2014 the SWE should adjust the getByRole query to whatever query works against the real input, without changing what the test asserts."
+  ],
+  "feature_id": "91a1396b-24fe-4091-9f48-2133bbd6ae34",
+  "flows": [],
+  "must": [
+    "WHEN the search input's value is 200 characters or fewer the system shall write the whole value into the ?q= URL parameter.",
+    "WHEN the search input's value exceeds 200 characters the system shall write only the first 200 characters into the ?q= URL parameter.",
+    "The system shall not alter the search input's own displayed value in response to the URL cap; a reader continues to see the full string they typed or pasted.",
+    "WHEN the search input is empty the system shall omit the ?q= parameter from the URL."
+  ],
+  "non_functional": [
+    {
+      "applies": false,
+      "category": "performance",
+      "criteria": [],
+      "target": null,
+      "why_not": "Slicing a string on each keystroke is trivial compared with the surrounding React work and does not change page timing meaningfully."
+    },
+    {
+      "applies": false,
+      "category": "availability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No new failure mode is introduced; the change is a substring on a value already held in local state."
+    },
+    {
+      "applies": true,
+      "category": "security",
+      "criteria": [
+        "AC4",
+        "AC5"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "category": "privacy",
+      "criteria": [
+        "AC5"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "observability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No new metric or log is needed; the cap is a local invariant with no failure to observe."
+    },
+    {
+      "applies": true,
+      "category": "accessibility",
+      "criteria": [
+        "AC5"
+      ],
+      "target": "The input continues to reflect what the reader typed, so screen-reader and voice-input users get accurate feedback about their own entry regardless of what is written to the URL.",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "compliance",
+      "criteria": [],
+      "target": null,
+      "why_not": "No regulated content, PII processing or record-keeping obligation is engaged by capping a URL parameter."
+    }
+  ],
+  "open_questions": [
+    "The exact mechanism the current code uses to update the URL is not visible from the map alone. The acceptance test mocks next/navigation's useRouter and asserts on the arguments to router.replace. If the implementation uses window.history.replaceState directly, the test needs to inspect window.location.search instead \u2014 the SWE should adjust to match the actual mechanism, without changing what is asserted.",
+    "AC1, AC2 and AC3 exercise behaviour that already holds on the current code (short queries and empty inputs already round-trip correctly). They act as regression guards against a fix that goes too far \u2014 e.g. capping the input's own value or breaking URL sync entirely. Only AC4 and AC5 fail against the current implementation.",
+    "The search input's accessible role is assumed to be 'searchbox' (i.e. type=\"search\"). If it is a plain type=\"text\" input, the SWE should either update the query in the acceptance tests to getByRole('textbox') or change the input's type \u2014 the semantic role for a search field is 'searchbox'."
+  ],
+  "outcome": "A reader who pastes a long search into the changelog can no longer share a URL that carries more text than the page will use; the URL always matches what the page reads back.",
+  "rationale": "The user framing is unambiguous: 'what is shared is what is shown'. Read-path and write-path must agree on the same 200-character prefix. The user explicitly rejected truncating the input's visible value \u2014 the cap belongs to the URL, not to the reader's own text \u2014 so AC5 asserts both halves of that split in one test (URL is 200, input.value is 500). AC4 is the off-by-one boundary: a wrong implementation that caps at 199 or 201 fails here, and a no-cap implementation fails outright. AC2 and AC3 anchor the everyday and boundary cases below the cap so a fix that over-corrects (capping every URL, not only long ones) also fails. DTI-01 is applied by making AC4 and AC5 the discriminating tests: their inputs (201 and 500 characters) produce different observable URLs under the correct and the wrong implementations, and the assertions read what a copier of the URL would actually get. This is intentionally a small change: one substring on one write, matching an existing constant, with no visible UI change. The design half of the spec therefore reaches for the boring choice \u2014 reuse the existing 200 constant if it is already in scope, add nothing new to the DOM, and stop.",
+  "risks": [
+    {
+      "mitigation": "AC5 explicitly asserts that a 500-character paste leaves input.value at 500 characters; a fix that caps the input itself fails this test and is caught before merge.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Over-fix truncates the input's visible value"
+    },
+    {
+      "mitigation": "swe_constraints require reusing (or introducing) a shared 200-character constant used by both paths so the two invariants cannot drift apart in a future change.",
+      "reference": null,
+      "severity": "low",
+      "title": "Cap drifts from read path if reimplemented with a duplicate literal"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [],
+    "stages": [
+      "Development",
+      "UAT",
+      "Production"
+    ]
+  },
+  "schema_version": 8,
+  "should": [],
+  "standards_applied": [
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+      "why_not": "This change is a URL-length cap on a search input; no dates or timestamps are added, removed or formatted."
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
+      "why_not": "The changelog reads from a static JSON file on the client; no database writes are involved."
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC4",
+        "AC5"
+      ],
+      "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5"
+      ],
+      "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+      "why_not": "The change adds or alters no customer-facing copy; the search input's placeholder, label and surrounding text are untouched."
+    }
+  ],
+  "swe_constraints": [
+    "Apply the 200-character cap on the value written to the URL, not on the value held in the input's local state. The controlled input's value must continue to reflect what the reader entered.",
+    "Use string.slice(0, 200) or an equivalent substring \u2014 do not attempt to cap by counting code units, bytes or grapheme clusters. The read path uses a plain character cap and the write path must match it exactly.",
+    "Reuse the existing 200-character constant if the read path already defines one; do not introduce a second literal. If no constant exists, define one and use it from both paths so they cannot drift.",
+    "Keep the current URL-update mechanism (router.replace vs history.replaceState \u2014 whichever is in use). The cap goes on the value that goes into the URL, not into a new URL-writing pathway.",
+    "The ?q= parameter must continue to be omitted (not set to an empty string) when the search input is empty, matching current behaviour."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "reason": "Holds the search input's state and the code that mirrors it into ?q=. This is where the write-path cap goes. The read-path cap (opening a link with a long ?q=) already lives here or in a helper it uses."
+    },
+    {
+      "exists": false,
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx",
+      "reason": "New test file. Follows the existing convention that changelog component tests live in __tests__/changelog/ \u2014 the other 11 files in that directory establish the pattern."
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "A shared link's ?q= parameter carries at most 200 characters, matching the read-path cap",
+        "The search input keeps showing what I typed or pasted, so I don't lose visibility of my own input"
+      ],
+      "references": [],
+      "role": "changelog reader who has narrowed by a search term",
+      "so_that": "what I share matches what the recipient will see, and I don't accidentally send a longer string than the filter runs on",
+      "want": "the URL I copy to only carry the search the page will actually use"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Narrow the changelog by a search term",
+        "Copy the resulting URL and send it to someone else"
+      ],
+      "name": "Changelog reader who shares a filtered view",
+      "pain_points": [
+        "Long search text currently travels in the URL past the point the page will use, so a shared link can leak more text than the sharer realised it carried"
+      ]
+    }
+  ],
+  "wireframes": [],
+  "wont": [
+    "The change won't truncate the search input's visible value; a paste of 5000 characters still shows 5000 characters in the input box.",
+    "The change won't add a visible notice, tooltip, toast or aria-live message that the URL was shortened.",
+    "The change won't change the read path \u2014 the existing 200-character cap on opening a link is already in place and is not being modified.",
+    "The change won't touch the ?year= parameter, which is bounded to enum values from the entry set and cannot grow long.",
+    "The change won't introduce a configurable cap; the value is 200, matching the read-path constant already in the code."
+  ]
+}

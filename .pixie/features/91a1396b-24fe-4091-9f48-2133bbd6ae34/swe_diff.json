@@ -1,0 +1,65 @@
+{
+  "branch": "pixie/91a1396b-24fe-4091-9f48-2133bbd6ae34",
+  "decisions_log": [
+    {
+      "decision": "Introduced local React state (inputValue) for the search input value, separate from the URL-derived searchQuery.",
+      "rationale": "The original component was a purely URL-controlled input: TitleSearch received value={searchQuery} where searchQuery came from useSearchParams. With this architecture, adding a write-path URL cap at 200 chars would cause the controlled input to display 200 chars after the next re-render (because searchQuery derives from the capped URL). AC5 requires the input to continue showing the full 500-character paste. The SWE constraint explicitly says 'apply the cap on the value written to the URL, not on the value held in the input's local state' \u2014 implying local state should exist. Adding useState(searchQuery) initialized from the URL on mount satisfies both: the input shows the full typed value, and the URL receives only 200 chars."
+    },
+    {
+      "decision": "Extracted QUERY_MAX_LENGTH = 200 as a module-level named constant and used it for both read and write paths.",
+      "rationale": "The SWE constraint required not introducing a second literal. The read path had an inline 200; extracting it to a named constant makes both paths visibly reference the same number and prevents future drift. Follows the inline style already in the file rather than adding a separate constants module."
+    },
+    {
+      "decision": "Placed the new test file at __tests__/changelog/changelog-filtered-list-url-cap.test.tsx (the design.json-predicted path) with a simple non-reactive mock rather than the reactive mock used in filter-url-sync.test.tsx.",
+      "rationale": "The simple mock works correctly for the write-path cap tests because the local state in the component now drives re-renders independently of the URL mock. AC1-AC5 are all directly exercisable with this simpler mock. The reactive mock is reserved for filter-url-sync.test.tsx which tests full URL round-trip behavior."
+    },
+    {
+      "decision": "Updated handleYearChange to pass inputValue (local state) rather than searchQuery (URL-derived) to updateUrl.",
+      "rationale": "When the year changes, the URL should carry whatever the reader currently has in the search box \u2014 which is inputValue. Using searchQuery would silently discard characters typed beyond 200 from the combined URL."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "91a1396b-24fe-4091-9f48-2133bbd6ae34",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/changelog/ChangelogFilteredList.tsx",
+      "summary": "Extracted QUERY_MAX_LENGTH = 200 constant used by both the existing read-path cap and the new write-path cap. Added .slice(0, QUERY_MAX_LENGTH) to trimmedQ in updateUrl so the ?q= URL parameter never exceeds 200 characters. Added local React state (inputValue/setInputValue) for the search input, initialized from the URL-derived searchQuery, so the controlled input continues to display the full typed string while the URL receives only the first 200 characters. Updated handleYearChange, handleSearchChange, TitleSearch value prop, and the filter expression to use inputValue."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx",
+      "summary": "New test file covering the write-path URL cap (AC1\u2013AC5). Uses a simple non-reactive mock for next/navigation. Tests that clearing the input removes ?q=, short queries are written verbatim, a 200-char value is written in full, a 201-char value is capped to 200 in the URL, and a 500-char paste caps the URL at 200 while the input continues to show the full 500-character string."
+    }
+  ],
+  "pr_ref": "stub://pr/91a1396b-24fe-4091-9f48-2133bbd6ae34",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 201 tests pass (27 suites), lint is clean, build and TypeScript both succeed. The write-path cap is applied via .slice(0, QUERY_MAX_LENGTH) in updateUrl, using the same constant as the read path. The input's visible value is preserved via local state. The ?q= parameter is omitted (not set to empty string) when the trimmed, capped value is empty \u2014 unchanged from prior behaviour. The searchQuery variable is retained for the read-path cap comment and the unused variable is safely present; it is used to initialize the local state, so there is no dead code."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/changelog/changelog-filtered-list-url-cap.test.tsx"
+    }
+  ]
+}
