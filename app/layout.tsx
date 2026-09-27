@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
+import SkipLink from "@/components/SkipLink";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -42,6 +43,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
+        <SkipLink />
         <ThemeProvider>
           <header className="w-full py-3 px-8 flex items-center justify-end border-b border-black/[.08] dark:border-white/[.145]">
             <ThemeToggle />

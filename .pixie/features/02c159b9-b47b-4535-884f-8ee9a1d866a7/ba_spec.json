@@ -1,0 +1,67 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "A user is navigating the site via keyboard",
+      "id": "AC1",
+      "then": "the skip-to-content link becomes visually visible on the screen",
+      "when": "the user presses the Tab key for the first time after a page load"
+    },
+    {
+      "given": "The skip-to-content link is visible and focused",
+      "id": "AC2",
+      "then": "the browser focus shifts to the main content area",
+      "when": "the user presses Enter or Space"
+    },
+    {
+      "given": "A user is navigating with a mouse",
+      "id": "AC3",
+      "then": "the skip-to-content link is not visible",
+      "when": "the user views the page"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The main content area can be uniquely identified by an ID (e.g., 'main') within the existing Next.js layout.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The skip link should be the very first child of the body or the root layout to ensure it is the first thing reached via Tab.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Add an accessibility 'skip to content' link to the Pixie sandbox Next.js site. This link will be visually hidden by default to avoid cluttering the UI for mouse users, but will become visible when a keyboard user tabs into it. Clicking the link will move the system focus to the primary content area of the page, allowing keyboard and screen reader users to bypass repetitive header navigation.",
+  "constraints": [
+    {
+      "detail": "Must comply with WCAG 2.1/2.2 accessibility guidelines regarding bypass blocks.",
+      "kind": "other"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "02c159b9-b47b-4535-884f-8ee9a1d866a7",
+  "flows": [],
+  "must": [
+    "The system shall provide a skip-to-content link as the first focusable element in the DOM.",
+    "WHILE the skip link is not focused, the system shall hide it from the visual viewport using a CSS technique that keeps it available to screen readers (e.g., absolute positioning off-screen).",
+    "WHEN the skip link receives keyboard focus, the system shall make it visually visible to the user.",
+    "WHEN the skip link is activated, the system shall move keyboard focus to the main content container.",
+    "The system shall ensure the target content container has a unique, stable ID for navigation."
+  ],
+  "open_questions": [],
+  "outcome": null,
+  "rationale": "The requirement is a standard accessibility pattern. To satisfy the 'skip' behavior, we must ensure both the visual visibility on focus and the actual transfer of focus to a meaningful landmark. I have assumed the use of a standard `#main` ID which is idiomatic in Next.js/HTML5 layouts.\n\n## Memory writes\n- decision: The skip link will be visually hidden by default and only become visible on focus to avoid visual noise for mouse users.\n- factual: The feature implements a standard WCAG bypass block for keyboard accessibility.",
+  "risks": [],
+  "rollout": null,
+  "schema_version": 1,
+  "should": [
+    "The skip link text should be concise (e.g., 'Skip to main content')."
+  ],
+  "user_stories": [],
+  "users": [],
+  "wireframes": [],
+  "wont": [
+    "The system won't change the existing header or navigation structure.",
+    "The system won't add new visual elements for mouse users."
+  ]
+}

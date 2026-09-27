@@ -1,0 +1,68 @@
+{
+  "branch": "pixie/02c159b9-b47b-4535-884f-8ee9a1d866a7",
+  "decisions_log": [
+    {
+      "decision": "Used Tailwind's focus:not-sr-only combined with focus:absolute, focus:top-4, focus:left-4, focus:z-50 to reveal the skip link on focus.",
+      "rationale": "The spec listed the exact Tailwind utility classes as a deferred decision; focus:not-sr-only is the idiomatic Tailwind v3+ approach that reverses sr-only on focus. This satisfies all three ACs without custom CSS."
+    },
+    {
+      "decision": "Placed <SkipLink /> as the first child of <body> in layout.tsx, before <ThemeProvider>.",
+      "rationale": "ThemeProvider wraps the header and other navigation elements. Placing SkipLink outside ThemeProvider keeps it as the absolute first focusable DOM element, satisfying the Must requirement and the SWE constraint."
+    },
+    {
+      "decision": "Made the <main> element's tabindex not set (no tabIndex=-1 added).",
+      "rationale": "Modern browsers move focus to anchor targets without requiring tabIndex=-1 on the target element. The spec does not require it and adding it would change tab order unexpectedly. If focus management proves unreliable in certain browsers, adding tabIndex=-1 to the <main> element would be a small follow-up."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "02c159b9-b47b-4535-884f-8ee9a1d866a7",
+  "files_changed": [
+    {
+      "change_kind": "new",
+      "path": "components/SkipLink.tsx",
+      "summary": "New component rendering an <a href='#main-content'> that is sr-only by default and visible on focus using Tailwind focus: variant utilities."
+    },
+    {
+      "change_kind": "modify",
+      "path": "app/layout.tsx",
+      "summary": "Import SkipLink and render it as the first child of <body>, before ThemeProvider, ensuring it is the first focusable element in the DOM."
+    },
+    {
+      "change_kind": "modify",
+      "path": "app/page.tsx",
+      "summary": "Added id=\"main-content\" to the <main> element to provide a stable skip-link target."
+    },
+    {
+      "change_kind": "modify",
+      "path": "app/changelog/page.tsx",
+      "summary": "Added id=\"main-content\" to the <main> element to provide a stable skip-link target."
+    },
+    {
+      "change_kind": "new",
+      "path": "__tests__/SkipLink.test.tsx",
+      "summary": "Tests for the SkipLink component covering all three acceptance criteria."
+    }
+  ],
+  "pr_ref": "stub://pr/02c159b9-b47b-4535-884f-8ee9a1d866a7",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 140 tests pass (4 new SkipLink tests + 136 pre-existing). Lint passes with no warnings. The skip link uses sr-only / focus:not-sr-only Tailwind utilities as specified. Both page <main> elements have id='main-content'. The SkipLink is the first child of <body>."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/SkipLink.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/SkipLink.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/SkipLink.test.tsx"
+    }
+  ]
+}
