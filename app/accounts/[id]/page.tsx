@@ -24,6 +24,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function AccountPage({ params }: Props) {
+  // AUTHENTICATION IS INTENTIONALLY ABSENT. Northline Bank is a demo with
+  // entirely fictional data, and the spec rules out any sign-in flow. Do not
+  // copy this route for real account data as-is: if this ever serves real
+  // data, add a session/auth check HERE — before the whitelist validation
+  // below — and return notFound() (not 403) for unauthenticated requests so
+  // the existence of an account is not disclosed.
   const { id } = await params;
 
   // Validate against the fixed whitelist before any further use (SEC-01 §3).

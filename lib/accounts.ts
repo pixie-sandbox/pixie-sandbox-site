@@ -1,3 +1,14 @@
+/**
+ * Accounts data for the Northline Bank demo.
+ *
+ * AUTHENTICATION IS INTENTIONALLY ABSENT. Every account and transaction in
+ * data/accounts.json is fictional, and the site deliberately behaves as if a
+ * fictional customer (Alex Taylor) is always signed in. These helpers return
+ * data to any caller. If this code is ever extended to real account data,
+ * access must be gated by a session/auth check in the calling route before
+ * any id validation or lookup happens — this module is not a security
+ * boundary.
+ */
 import accountsData from '@/data/accounts.json';
 
 export type Transaction = {

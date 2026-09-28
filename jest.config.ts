@@ -12,7 +12,6 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
   },
-  watchman: false,
 };
 
 export default createJestConfig(config);
