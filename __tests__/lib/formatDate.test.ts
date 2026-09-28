@@ -8,8 +8,11 @@ describe('formatDate', () => {
 
   it('zero-pads single-digit days', () => {
     // Discriminating: day 5 must render as '05', not '5'.
-    // Note: 'en-GB' locale abbreviates September as 'Sept' on this runtime.
-    expect(formatDate('2026-09-05')).toMatch(/^05 Sep/);
+    expect(formatDate('2026-09-05')).toMatch(/^05 /);
+  });
+
+  it('abbreviates September as three letters ("Sep", not ICU en-GB "Sept")', () => {
+    expect(formatDate('2026-09-05')).toBe('05 Sep 2026');
   });
 
   it('handles January correctly', () => {
