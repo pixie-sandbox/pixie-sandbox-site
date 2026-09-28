@@ -2,8 +2,20 @@
   "branch": "pixie/697bbda1-0565-4949-b410-dec37782a356",
   "decisions_log": [
     {
-      "decision": "Used 'en-GB' locale for Intl.DateTimeFormat in formatDate (matching the existing Footer.tsx pattern), not 'en-AU', because 'en-AU' produced 'Sep.' with a trailing period on the runtime available here whereas 'en-GB' produces clean three-letter abbreviations for all months except September which renders as 'Sept' on Node v25.",
-      "rationale": "The Footer already used this pattern and its tests pass. Changing to 'en-AU' would break the existing Footer tests and produce inconsistent output. The DD MMM YYYY spec requirement is met for all months relevant to the AC13 example ('29 Aug 2026')."
+      "decision": "Security finding (low, unauthenticated account route): addressed with the reviewer's recommended remedy. There is a comment at the top of the AccountPage handler in app/accounts/[id]/page.tsx and a module header in lib/accounts.ts. They say authentication is intentionally absent because the data is fictional and the spec forbids a sign-in flow. They also say that if real data is ever served, a session/auth check must go in the route before the whitelist validation, and that it should answer unauthenticated requests with notFound() rather than 403 so it does not reveal whether an account exists. No runtime auth was added.",
+      "rationale": "The spec's Won't list rules out any authentication flow, so adding a real check would contradict the spec. The finding itself recommends documentation. Documentation is the right fix here."
+    },
+    {
+      "decision": "jest.config.ts is reverted to exactly its state on main (the `watchman: false` line is removed).",
+      "rationale": "The reviewer flagged it as a file the spec never named. The Feature doesn't need it. It only worked around a watchman socket permission error in my local sandbox. Locally I run `npx jest --watchman=false`. CI has no watchman, so this doesn't matter there."
+    },
+    {
+      "decision": "End-to-end tests use Playwright (@playwright/test 1.63.0 devDependency, playwright.config.ts, e2e/banking.e2e.ts, `npm run test:e2e` script, and test-results/ and playwright-report/ in .gitignore). This adds a test framework and touches files the spec does not name (package.json, package-lock.json, .gitignore).",
+      "rationale": "Normally a new framework is a deferred question, but it was raised last round. The person answered 'ok do the end to end test' to the option that named Playwright. I first tried an HTTP-only end-to-end test with the existing Jest (fetch HTML from `next start`), which would have needed no new dependency. It can't verify AC10, AC11 or AC15. For a dynamic route, Next 16 answers notFound() with a 404 status and an `__next_error__` shell, and app/not-found.tsx plus the Header are rendered client-side from the RSC payload. /changelog's filtered list is also client-rendered because it sits in Suspense behind useSearchParams. A real browser is needed to see what a visitor sees. Spec files are named *.e2e.ts so Jest's default testMatch ignores them. That's why jest.config.ts needed no change."
+    },
+    {
+      "decision": "Fixed lib/formatDate.ts to use a fixed three-letter month table instead of toLocaleDateString('en-GB'). The previous unit test that allowed 'Sept' is replaced with one that pins '05 Sep 2026'.",
+      "rationale": "The new AC7 e2e test failed on a real bug: September transactions rendered as '02 Sept 2026' because current ICU abbreviates September as 'Sept' in en-GB. That breaks the DD MMM YYYY requirement (AC7, AC13, DTS-04). I dropped the earlier decision to keep en-GB. The Footer shares this formatter, and its 'Last updated' line is unchanged for every existing changelog date (all in August). Only a future September date would now read 'Sep' instead of 'Sept', which is what DD MMM YYYY requires."
     },
     {
       "decision": "Header is a client component ('use client') because it uses usePathname for the active-nav-item indicator. An alternative would be to pass the current path as a prop from a server component, but that would require wrapping in layout which is more complex.",
@@ -22,10 +34,6 @@
       "rationale": "The spec noted this as 'expected but not required'. Removing duplication is the right engineering call since the output is identical."
     },
     {
-      "decision": "jest.config.ts watchman: false was added. This is a pre-existing environment issue (watchman socket permission error) not introduced by this change.",
-      "rationale": "Without this flag, jest crashes before running any test. The existing test suite was presumably run with watchman disabled or in a different environment."
-    },
-    {
       "decision": "Palette: --primary-blue: #1d4ed8 (equivalent to Tailwind blue-700) for light mode; --primary-blue: #60a5fa (blue-400) for dark mode. --primary-blue-text: #1e3a8a (blue-900) for light; #bfdbfe (blue-200) for dark.",
       "rationale": "Generic deep-blue family; no ANZ hex codes reproduced. WCAG AA: blue-900 on white \u22657:1; blue-200 on zinc-950 \u22656:1. Green for money-in: green-600 on white \u22654.5:1; green-400 on zinc-900 \u22654.5:1."
     }
@@ -33,11 +41,7 @@
   "deferred_questions": [
     {
       "blocker": false,
-      "question": "AC6 (account detail shows same masked number and balance as overview), AC7 (transactions sorted newest first with correct date/amount/balance format), AC8 (money-in green colour and +/- sign), AC10 (unknown id renders 404), AC11 (header present on all pages), AC13 (date rendering on detail page), AC15 (changelog unchanged), AC16 (no ANZ assets), AC17 (CSS variable present) are not covered by executable unit tests because app/accounts/[id]/page.tsx is an async server component and @testing-library/react cannot render one directly. The logic is covered by: (a) data-integrity tests in __tests__/accounts-data.test.ts for AC9/AC14; (b) unit tests for formatDate (AC13) and formatMoney; (c) the build succeeding (AC15, AC16, AC17). Options to close the gap: extract the account detail into a client component with a thin async server wrapper, or add Playwright end-to-end tests."
-    },
-    {
-      "blocker": false,
-      "question": "The Header component is a client component (usePathname). The test for AC11 (header present on all pages) cannot be written as a unit test against an async server component (layout.tsx). It is visually verifiable in the built output \u2014 the build passes and Header is mounted in RootLayout. An end-to-end test would close this gap."
+      "question": "CI (.github/workflows/ci.yml) runs lint, tsc and build but not `npm test` or `npm run test:e2e`. So neither the Jest suite nor the new Playwright suite gates merges. Pixie cannot edit workflows. If you want the e2e tests to gate, a human needs to add a step: `npx playwright install --with-deps chromium && npm run test:e2e`."
     }
   ],
   "feature_id": "697bbda1-0565-4949-b410-dec37782a356",
@@ -50,12 +54,12 @@
     {
       "change_kind": "added",
       "path": "lib/accounts.ts",
-      "summary": "Typed loader (getAccounts, getAccountById) and VALID_ACCOUNT_IDS whitelist (used for SEC-01 \u00a73 URL validation)."
+      "summary": "Typed loader (getAccounts, getAccountById) and VALID_ACCOUNT_IDS whitelist (used for SEC-01 \u00a73 URL validation). Module header states auth is intentionally absent (fictional demo data) and where a session check must go if real data is ever used."
     },
     {
       "change_kind": "added",
       "path": "lib/formatDate.ts",
-      "summary": "Shared DD MMM YYYY date formatter complying with DTS-04 \u00a71. Timezone-safe via local date construction."
+      "summary": "Shared DD MMM YYYY date formatter (DTS-04 \u00a71). Uses a fixed month table so September renders 'Sep', not ICU en-GB 'Sept'. Timezone-safe: parses the date portion directly."
     },
     {
       "change_kind": "added",
@@ -95,17 +99,12 @@
     {
       "change_kind": "added",
       "path": "app/accounts/[id]/page.tsx",
-      "summary": "Dynamic account detail route. Validates id against VALID_ACCOUNT_IDS whitelist; calls notFound() for unknown ids (SEC-01 \u00a73). Shows account summary and TransactionList sorted newest-first."
+      "summary": "Dynamic account detail route. Validates id against VALID_ACCOUNT_IDS whitelist; calls notFound() for unknown ids (SEC-01 \u00a73). Shows account summary and TransactionList sorted newest-first. Handler comment states auth is intentionally absent and that any future auth check goes before the whitelist validation."
     },
     {
       "change_kind": "modified",
       "path": "app/globals.css",
       "summary": "Add deep-blue CSS variables (--primary-blue, --primary-blue-hover, --primary-blue-light, --primary-blue-text) for light and dark modes. No ANZ hex codes reproduced."
-    },
-    {
-      "change_kind": "modified",
-      "path": "jest.config.ts",
-      "summary": "Set watchman: false to work around a permission issue with the watchman socket in this environment."
     },
     {
       "change_kind": "added",
@@ -126,15 +125,45 @@
       "change_kind": "added",
       "path": "__tests__/lib/formatMoney.test.ts",
       "summary": "Unit tests for formatMoney: unsigned and signed formatting, sign outside currency symbol, large amounts with commas."
+    },
+    {
+      "change_kind": "added",
+      "path": "e2e/banking.e2e.ts",
+      "summary": "Playwright end-to-end acceptance tests against next build + next start, run in Chromium: AC6\u2013AC13 and AC15\u2013AC17, including dark mode, 404 status and the changelog filters."
+    },
+    {
+      "change_kind": "added",
+      "path": "playwright.config.ts",
+      "summary": "Playwright config: testDir e2e, testMatch *.e2e.ts, webServer builds and starts the site on port 3100 (E2E_PORT overrides)."
+    },
+    {
+      "change_kind": "modified",
+      "path": "package.json",
+      "summary": "Adds the @playwright/test devDependency and a `test:e2e` script. Needed for the e2e tests the reviewer asked for."
+    },
+    {
+      "change_kind": "modified",
+      "path": "package-lock.json",
+      "summary": "Lockfile update for @playwright/test."
+    },
+    {
+      "change_kind": "modified",
+      "path": ".gitignore",
+      "summary": "Ignores Playwright's test-results/ and playwright-report/ output."
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/lib/formatDate.test.ts",
+      "summary": "Pins September to '05 Sep 2026' instead of allowing 'Sept'."
     }
   ],
   "pr_ref": "stub://pr/697bbda1-0565-4949-b410-dec37782a356",
   "schema_version": 1,
   "self_assessment": {
-    "all_acs_have_tests": false,
+    "all_acs_have_tests": true,
     "all_must_addressed": true,
     "constraints_honoured": true,
-    "notes": "All Must requirements are implemented. AC1\u2013AC5, AC9, AC12\u2013AC14 have executable tests. AC6\u2013AC8, AC10, AC11, AC15\u2013AC17 are implemented but lack executable unit tests because the entry points are async server components or require cross-page rendering \u2014 see deferred_questions for the rationale and options. All three repo checks (lint, test, build) pass. The watchman: false addition to jest.config.ts resolves a pre-existing environment permission issue and does not affect test semantics."
+    "notes": "Every AC now has an executable test. AC1\u2013AC5, AC9, AC12\u2013AC14 are covered by Jest. AC6\u2013AC13 and AC15\u2013AC17 are covered by Playwright end-to-end tests, 23 in total, all passing locally in headless Chromium. The low security finding is fixed with documentation in the route and lib/accounts.ts, as the finding recommended; the spec forbids adding auth. jest.config.ts is back to its main-branch state. The e2e suite found and fixed a real bug: September dates rendered 'Sept'. Repo checks: `npm run lint` passes, `npx tsc --noEmit` passes, `npm run build` passes, and Jest passes 235/235 in 31 suites (run locally with --watchman=false because of a sandbox watchman permission issue; this is not a repo problem). To run the e2e tests: `npx playwright install chromium && npm run test:e2e`. CI does not run tests; see deferred_questions."
   },
   "tests_added": [
     {
@@ -168,6 +197,54 @@
     {
       "covers_acceptance_criterion": "AC14",
       "path": "__tests__/accounts-data.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC13",
+      "path": "__tests__/lib/formatDate.test.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC6",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC7",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC8",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC9",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC10",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC11",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC12",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC13",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC15",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC16",
+      "path": "e2e/banking.e2e.ts"
+    },
+    {
+      "covers_acceptance_criterion": "AC17",
+      "path": "e2e/banking.e2e.ts"
     },
     {
       "covers_acceptance_criterion": "AC13",
