@@ -9,6 +9,13 @@
   --background: #ffffff;
   --foreground: #171717;
   scroll-behavior: smooth;
+
+  /* Northline Bank — deep-blue primary palette (light mode)
+     Based on a generic deep-blue family; no ANZ brand assets reproduced. */
+  --primary-blue: #1d4ed8;       /* blue-700 equivalent */
+  --primary-blue-hover: #1e40af; /* blue-800 equivalent */
+  --primary-blue-light: #dbeafe; /* blue-100 — card accent background */
+  --primary-blue-text: #1e3a8a;  /* blue-900 — header text on light */
 }
 
 @theme inline {
@@ -21,6 +28,13 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+
+  /* Northline Bank — deep-blue primary palette (dark mode)
+     Lightened for adequate contrast on dark backgrounds (WCAG 2.1 AA). */
+  --primary-blue: #60a5fa;       /* blue-400 — readable on dark bg */
+  --primary-blue-hover: #93c5fd; /* blue-300 — hover state */
+  --primary-blue-light: #1e3a8a; /* blue-900 — card accent background (dark) */
+  --primary-blue-text: #bfdbfe;  /* blue-200 — header/nav text on dark */
 }
 
 body {

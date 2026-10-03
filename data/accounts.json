@@ -1,0 +1,256 @@
+[
+  {
+    "id": "everyday",
+    "name": "Everyday",
+    "masked_number": "•••• 4821",
+    "balance": 7192.00,
+    "transactions": [
+      {
+        "date": "2026-07-01",
+        "description": "Salary deposit",
+        "amount": 4200.00,
+        "balance_after": 4892.40
+      },
+      {
+        "date": "2026-07-02",
+        "description": "Rent payment",
+        "amount": -1800.00,
+        "balance_after": 3092.40
+      },
+      {
+        "date": "2026-07-08",
+        "description": "Woolworths",
+        "amount": -134.60,
+        "balance_after": 2957.80
+      },
+      {
+        "date": "2026-07-12",
+        "description": "Shell Petrol",
+        "amount": -78.50,
+        "balance_after": 2879.30
+      },
+      {
+        "date": "2026-07-18",
+        "description": "Electricity bill",
+        "amount": -198.50,
+        "balance_after": 2680.80
+      },
+      {
+        "date": "2026-07-28",
+        "description": "Coles",
+        "amount": -94.25,
+        "balance_after": 2586.55
+      },
+      {
+        "date": "2026-08-01",
+        "description": "Salary deposit",
+        "amount": 4200.00,
+        "balance_after": 6786.55
+      },
+      {
+        "date": "2026-08-02",
+        "description": "Rent payment",
+        "amount": -1800.00,
+        "balance_after": 4986.55
+      },
+      {
+        "date": "2026-08-10",
+        "description": "Woolworths",
+        "amount": -156.30,
+        "balance_after": 4830.25
+      },
+      {
+        "date": "2026-08-18",
+        "description": "Chemist Warehouse",
+        "amount": -38.25,
+        "balance_after": 4792.00
+      },
+      {
+        "date": "2026-09-01",
+        "description": "Salary deposit",
+        "amount": 4200.00,
+        "balance_after": 8992.00
+      },
+      {
+        "date": "2026-09-02",
+        "description": "Rent payment",
+        "amount": -1800.00,
+        "balance_after": 7192.00
+      }
+    ]
+  },
+  {
+    "id": "savings",
+    "name": "Savings",
+    "masked_number": "•••• 7356",
+    "balance": 15311.13,
+    "interest_rate": 4.5,
+    "transactions": [
+      {
+        "date": "2026-07-01",
+        "description": "Transfer from Everyday",
+        "amount": 500.00,
+        "balance_after": 12500.00
+      },
+      {
+        "date": "2026-07-10",
+        "description": "Regular savings transfer",
+        "amount": 200.00,
+        "balance_after": 12700.00
+      },
+      {
+        "date": "2026-07-16",
+        "description": "Interest credit",
+        "amount": 48.63,
+        "balance_after": 12748.63
+      },
+      {
+        "date": "2026-07-28",
+        "description": "Transfer from Everyday",
+        "amount": 300.00,
+        "balance_after": 13048.63
+      },
+      {
+        "date": "2026-08-01",
+        "description": "Regular savings transfer",
+        "amount": 200.00,
+        "balance_after": 13248.63
+      },
+      {
+        "date": "2026-08-12",
+        "description": "Interest credit",
+        "amount": 50.54,
+        "balance_after": 13299.17
+      },
+      {
+        "date": "2026-08-18",
+        "description": "Transfer from Everyday",
+        "amount": 500.00,
+        "balance_after": 13799.17
+      },
+      {
+        "date": "2026-08-22",
+        "description": "Regular savings transfer",
+        "amount": 200.00,
+        "balance_after": 13999.17
+      },
+      {
+        "date": "2026-09-01",
+        "description": "Interest credit",
+        "amount": 53.42,
+        "balance_after": 14052.59
+      },
+      {
+        "date": "2026-09-05",
+        "description": "Regular savings transfer",
+        "amount": 200.00,
+        "balance_after": 14252.59
+      },
+      {
+        "date": "2026-09-12",
+        "description": "Bonus savings transfer",
+        "amount": 1000.00,
+        "balance_after": 15252.59
+      },
+      {
+        "date": "2026-09-18",
+        "description": "Interest credit",
+        "amount": 58.54,
+        "balance_after": 15311.13
+      }
+    ]
+  },
+  {
+    "id": "credit-card",
+    "name": "Credit card",
+    "masked_number": "•••• 2094",
+    "balance": 370.14,
+    "credit_limit": 10000.00,
+    "transactions": [
+      {
+        "date": "2026-07-03",
+        "description": "Bunnings Warehouse",
+        "amount": -143.80,
+        "balance_after": 143.80
+      },
+      {
+        "date": "2026-07-08",
+        "description": "JB Hi-Fi",
+        "amount": -289.00,
+        "balance_after": 432.80
+      },
+      {
+        "date": "2026-07-14",
+        "description": "Coles",
+        "amount": -67.25,
+        "balance_after": 500.05
+      },
+      {
+        "date": "2026-07-20",
+        "description": "Uber Eats",
+        "amount": -42.50,
+        "balance_after": 542.55
+      },
+      {
+        "date": "2026-07-28",
+        "description": "Card payment — thank you",
+        "amount": 542.55,
+        "balance_after": 0.00
+      },
+      {
+        "date": "2026-08-02",
+        "description": "David Jones",
+        "amount": -234.90,
+        "balance_after": 234.90
+      },
+      {
+        "date": "2026-08-08",
+        "description": "Chemist Warehouse",
+        "amount": -45.60,
+        "balance_after": 280.50
+      },
+      {
+        "date": "2026-08-12",
+        "description": "Woolworths",
+        "amount": -89.40,
+        "balance_after": 369.90
+      },
+      {
+        "date": "2026-08-19",
+        "description": "Card payment — thank you",
+        "amount": 369.90,
+        "balance_after": 0.00
+      },
+      {
+        "date": "2026-08-24",
+        "description": "Dan Murphy's",
+        "amount": -78.30,
+        "balance_after": 78.30
+      },
+      {
+        "date": "2026-09-03",
+        "description": "Myer",
+        "amount": -156.50,
+        "balance_after": 234.80
+      },
+      {
+        "date": "2026-09-09",
+        "description": "Coles",
+        "amount": -73.45,
+        "balance_after": 308.25
+      },
+      {
+        "date": "2026-09-16",
+        "description": "Uber Eats",
+        "amount": -38.90,
+        "balance_after": 347.15
+      },
+      {
+        "date": "2026-09-21",
+        "description": "Netflix",
+        "amount": -22.99,
+        "balance_after": 370.14
+      }
+    ]
+  }
+]

@@ -1,5 +1,6 @@
 import BackToTop from './BackToTop';
 import changelog from '@/data/changelog.json';
+import { formatDate } from '@/lib/formatDate';
 
 type ChangelogEntry = { date: string; title: string; description: string };
 
@@ -9,21 +10,6 @@ function getLatestEntry(entries: ChangelogEntry[]): ChangelogEntry | null {
   return entries.reduce((latest, entry) =>
     new Date(entry.date) > new Date(latest.date) ? entry : latest
   );
-}
-
-/**
- * Formats an ISO 8601 date string as 'DD MMM YYYY'
- * (e.g. '2026-08-29T00:00:00.000Z' → '29 Aug 2026').
- * Parses the date portion directly to avoid timezone-offset shifts.
- */
-function formatDate(isoString: string): string {
-  const [year, month, day] = isoString.slice(0, 10).split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
 }
 
 export default function Footer() {

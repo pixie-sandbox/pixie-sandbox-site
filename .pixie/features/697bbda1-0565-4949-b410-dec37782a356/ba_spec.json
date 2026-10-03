@@ -1,0 +1,594 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "a visitor is on the home page (/) after the change",
+      "id": "AC1",
+      "then": "they see the greeting 'Hello, Alex' and exactly three account entries labelled 'Everyday', 'Savings' and 'Credit card'",
+      "when": "the page has rendered"
+    },
+    {
+      "given": "a visitor is on the home page",
+      "id": "AC2",
+      "then": "each shows a masked account number that ends with a distinct four-digit sequence and does not contain any other digits of the account number",
+      "when": "they look at each account entry"
+    },
+    {
+      "given": "a visitor is on the home page",
+      "id": "AC3",
+      "then": "they see the text '4.50% p.a.'",
+      "when": "they look at the Savings account entry"
+    },
+    {
+      "given": "a visitor is on the home page",
+      "id": "AC4",
+      "then": "they see both an amount owing formatted in AUD (e.g. '$847.20') and a credit limit formatted in AUD (e.g. '$10,000.00'), each clearly labelled",
+      "when": "they look at the Credit card account entry"
+    },
+    {
+      "given": "a visitor is on the home page",
+      "id": "AC5",
+      "then": "Everyday links to /accounts/everyday, Savings links to /accounts/savings, and Credit card links to /accounts/credit-card",
+      "when": "they inspect each account entry as an interactive link"
+    },
+    {
+      "given": "a visitor opens /accounts/everyday",
+      "id": "AC6",
+      "then": "they see 'Everyday' as the account name, the same masked number shown on the overview, and the same balance shown on the overview",
+      "when": "the page has rendered"
+    },
+    {
+      "given": "a visitor is on /accounts/everyday",
+      "id": "AC7",
+      "then": "transactions appear in descending date order and each row shows a date in the form 'DD MMM YYYY', a description, a signed amount (positive prefixed '+', negative prefixed '-'), and the balance after that transaction in AUD",
+      "when": "they view the transactions section"
+    },
+    {
+      "given": "a visitor is viewing a transaction list",
+      "id": "AC8",
+      "then": "its amount starts with '+' and is rendered with a distinct colour (green); and when they see a money-out row, its amount starts with '-' and is rendered with the default text colour",
+      "when": "they see a money-in row"
+    },
+    {
+      "given": "the three accounts on the overview and their detail pages",
+      "id": "AC9",
+      "then": "the two figures are equal for every account",
+      "when": "the overview balance is compared with the balance after the newest transaction on the corresponding detail page"
+    },
+    {
+      "given": "a visitor opens /accounts/mystery (or any id not present in data/accounts.json)",
+      "id": "AC10",
+      "then": "the existing not-found page (app/not-found.tsx) renders",
+      "when": "the route resolves"
+    },
+    {
+      "given": "a visitor is on the home page, an account detail page, /changelog, or the not-found page",
+      "id": "AC11",
+      "then": "they see 'Northline Bank' as a link to /, 'Accounts' as a link to /, and 'Changelog' as a link to /changelog",
+      "when": "they inspect the top of the page"
+    },
+    {
+      "given": "any rendered page that displays an account",
+      "id": "AC12",
+      "then": "no run of six or more consecutive digits belonging to an account number appears anywhere in the DOM \u2014 only the last four digits are present",
+      "when": "the DOM is inspected"
+    },
+    {
+      "given": "an account transaction has ISO date '2026-08-29'",
+      "id": "AC13",
+      "then": "it displays as '29 Aug 2026'",
+      "when": "it renders on the account detail page"
+    },
+    {
+      "given": "the data file data/accounts.json is loaded",
+      "id": "AC14",
+      "then": "each of the three accounts has between 10 and 15 transactions inclusive (target: ~12), all with plausible Australian merchant descriptions and ISO dates within the last three months",
+      "when": "counting transactions for each account"
+    },
+    {
+      "given": "/changelog and /changelog.xml",
+      "id": "AC15",
+      "then": "entries render in the same order and format as before, and the RSS feed contains the same items with the same channel metadata",
+      "when": "they are opened after the change"
+    },
+    {
+      "given": "the site's source and public assets",
+      "id": "AC16",
+      "then": "they contain no ANZ logo, wordmark, or reproduction of ANZ trademarked material; only a generic deep-blue palette is applied",
+      "when": "searched"
+    },
+    {
+      "given": "app/globals.css after the change",
+      "id": "AC17",
+      "then": "it defines a primary-blue CSS variable used by header, links, and account-card accents in both light and dark modes",
+      "when": "parsed"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC12"
+      ],
+      "entry_points": [
+        "@/app/page"
+      ],
+      "path": "__tests__/Home.accountsOverview.test.tsx",
+      "source": "import { render, screen } from '@testing-library/react'\nimport HomePage from '@/app/page'\n\ndescribe('Home \u2014 accounts overview', () => {\n  it('AC1: greets Alex and lists exactly three named accounts', () => {\n    render(<HomePage />)\n    expect(screen.getByText(/Hello,\\s*Alex/)).toBeInTheDocument()\n    expect(screen.getByText('Everyday')).toBeInTheDocument()\n    expect(screen.getByText('Savings')).toBeInTheDocument()\n    expect(screen.getByText('Credit card')).toBeInTheDocument()\n  })\n\n  it('AC3: shows the Savings interest rate as \"4.50% p.a.\"', () => {\n    render(<HomePage />)\n    expect(screen.getByText('4.50% p.a.')).toBeInTheDocument()\n  })\n\n  it('AC4: shows credit card owing and limit, both formatted in AUD', () => {\n    render(<HomePage />)\n    expect(screen.getByText(/owing/i)).toBeInTheDocument()\n    expect(screen.getByText(/limit/i)).toBeInTheDocument()\n    const amounts = screen.getAllByText(/\\$[\\d,]+\\.\\d{2}/)\n    // three account balances + owing + limit = 5 formatted amounts minimum\n    expect(amounts.length).toBeGreaterThanOrEqual(4)\n  })\n\n  it('AC5: links each account to its slug-based detail page', () => {\n    render(<HomePage />)\n    expect(screen.getByRole('link', { name: /Everyday/i })).toHaveAttribute('href', '/accounts/everyday')\n    expect(screen.getByRole('link', { name: /Savings/i })).toHaveAttribute('href', '/accounts/savings')\n    expect(screen.getByRole('link', { name: /Credit card/i })).toHaveAttribute('href', '/accounts/credit-card')\n  })\n\n  it('AC2 + AC12: shows masked account numbers and never leaks a full number', () => {\n    render(<HomePage />)\n    const textContent = document.body.textContent ?? ''\n    // At least one masked number visible (mask chars then four digits)\n    expect(textContent).toMatch(/(?:\u2022|\\u2022|\\*|\u00b7|\\.){2,}\\s?\\d{4}/)\n    // No run of six-or-more consecutive digits anywhere\n    expect(textContent).not.toMatch(/\\d{6,}/)\n  })\n})"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The bank is called 'Northline Bank' (interpretation of the user's suggestion 'world bank or something generic', avoiding a clash with the real World Bank Group). Trivial to change if a different fictional name is preferred.",
+      "confidence": "medium"
+    },
+    {
+      "assumption": "Slug-based ids: 'everyday', 'savings', 'credit-card' (agreed in round 1).",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The customer name Alex Taylor is hard-coded; the greeting reads exactly 'Hello, Alex' (agreed in round 1).",
+      "confidence": "high"
+    },
+    {
+      "assumption": "Money-in colour is a green matching the site's success/positive tone in both light and dark modes; money-out uses default text colour. Signs (+ / -) carry the meaning independently of colour.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The credit card account is modelled as a spending account: purchases show as -$X, payments as +$X, and the running balance is the amount owing (agreed in round 2).",
+      "confidence": "high"
+    },
+    {
+      "assumption": "Interest rate renders as '4.50% p.a.' (agreed in round 2).",
+      "confidence": "high"
+    },
+    {
+      "assumption": "Approximately twelve transactions per account (10\u201315 range) covering the last three months, all in AUD, with plausible Australian merchant descriptions (Coles, Woolworths, Bunnings, Optus, and so on).",
+      "confidence": "medium"
+    },
+    {
+      "assumption": "The deep-blue palette lives in a Tailwind blue-700 / blue-800 family; specific hex values are the engineer's call so long as WCAG AA contrast holds and no ANZ hex is reproduced.",
+      "confidence": "medium"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Turn the Pixie sandbox site into a small internet-banking demo for a fictional Australian bank, 'Northline Bank', styled to evoke a modern local internet-banking site (deep-blue primary palette, card-based accounts overview, clean typography) without reproducing any real bank's logos or trademarks. There is no sign-in; the site behaves as if a fictional customer, Alex Taylor, is signed in. The home page becomes an accounts overview showing three accounts \u2014 Everyday, Savings, and a Credit card \u2014 each with its name, a masked account number showing only the last four digits, and its balance in Australian dollars. Savings additionally shows an interest rate; Credit card shows the amount owing and the credit limit. Each account is a link to its own page at /accounts/<id>, which shows the account's details and a list of transactions newest first (date, description, signed amount, and running balance). The balance on the overview equals the balance after the newest transaction for each account. Unknown account ids fall through to the existing 404 page. Accounts and transactions come from a single data file at data/accounts.json, with about twelve realistic transactions per account. A simple header appears on every page linking to Accounts (home) and Changelog; the changelog page and its RSS feed keep working unchanged. There is no demo banner, no sign-in flow, and no transfer, payment or search functionality \u2014 those are explicitly out of scope.",
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart TD\n  Layout[app/layout.tsx RootLayout] --> Header[components/Header.tsx]\n  Layout --> Page[Page content]\n  Layout --> Footer[components/Footer.tsx]\n  Header --> Nav[Accounts / Changelog links]\n  Header --> Theme[ThemeToggle]\n  Page --> Home[app/page.tsx overview]\n  Page --> Detail[app/accounts/id/page.tsx]\n  Home --> Card[components/AccountCard.tsx]\n  Detail --> TxList[components/TransactionList.tsx]\n  Home --> Data[data/accounts.json]\n  Detail --> Data\n  Home --> LibM[lib/formatMoney.ts]\n  Home --> LibA[lib/accounts.ts]\n  Detail --> LibM\n  Detail --> LibA\n  Detail --> LibD[lib/formatDate.ts]\n  Footer --> LibD",
+    "title": "How the pieces fit"
+  },
+  "constraints": [
+    {
+      "detail": "The Changelog page (app/changelog/page.tsx) and RSS route (app/changelog.xml/route.ts) must continue to serve their existing content and shape unchanged. Existing changelog tests must continue to pass without modification.",
+      "kind": "integration"
+    },
+    {
+      "detail": "No full account or card number appears anywhere in the DOM, source, or public assets; only the last four digits are rendered (SEC-01 \u00a74).",
+      "kind": "security"
+    },
+    {
+      "detail": "The [id] URL segment is validated against a fixed whitelist ('everyday', 'savings', 'credit-card') before use; unknown values call notFound() (SEC-01 \u00a73 \u2014 treat outside input as data, not code).",
+      "kind": "security"
+    },
+    {
+      "detail": "No ANZ logos, wordmarks, or trademarked colour/tone assets are reproduced; the deep-blue palette is a distinct choice with no dependency on ANZ brand assets.",
+      "kind": "other"
+    },
+    {
+      "detail": "The accounts data file is read at build time via ES import; no runtime fetching.",
+      "kind": "performance"
+    }
+  ],
+  "contracts": [
+    {
+      "definition": "data/accounts.json \u2014 top-level array of Account.\n\ntype Account = {\n  id: 'everyday' | 'savings' | 'credit-card';\n  name: 'Everyday' | 'Savings' | 'Credit card';\n  masked_number: string;                  // e.g. '\u2022\u2022\u2022\u2022 4821'; last four digits only\n  balance: number;                        // AUD; for credit-card, the amount currently owing\n  interest_rate?: number;                 // percent p.a., savings only (e.g. 4.5)\n  credit_limit?: number;                  // AUD, credit-card only (e.g. 10000)\n  transactions: Transaction[];\n};\n\ntype Transaction = {\n  date: string;                           // ISO 8601 date, YYYY-MM-DD\n  description: string;                    // customer-facing merchant/description; no PAY-1234-style refs (PCP-02)\n  amount: number;                         // signed; positive = money in, negative = money out\n  balance_after: number;                  // AUD; for credit-card, the amount owing after the txn\n};\n\nInvariant: for every account, account.balance === transactions_sorted_desc[0].balance_after.",
+      "kind": "db_schema"
+    }
+  ],
+  "contributions_applied": [],
+  "data_changes": [
+    {
+      "change": "New file data/accounts.json containing three accounts (Everyday, Savings, Credit card) with ~12 realistic AUD transactions each. Balances derived so that account.balance equals the newest transaction's balance_after.",
+      "entity": "accounts data file",
+      "migration_needed": false
+    }
+  ],
+  "data_model": [],
+  "deferred_decisions": [
+    "Exact hex values in the deep-blue palette \u2014 engineer picks specific shades (e.g. Tailwind blue-700 for primary, blue-800 for hover, softer variants for dark mode) so long as WCAG AA contrast holds in both themes and no ANZ trademarked hex is reproduced.",
+    "Whether transaction rows use <table> markup or a role='table' + <ul>/<li> pattern \u2014 either is fine so long as accessible names and column semantics are clear.",
+    "Whether components/AccountCard.tsx and components/TransactionList.tsx are extracted as separate files or inlined in their parent pages \u2014 granularity is engineering judgement.",
+    "Currency-formatting via Intl.NumberFormat vs a manual template \u2014 both are acceptable; Intl.NumberFormat is the boring choice and needs no dependency.",
+    "Whether the Header's active-item indicator is bold, an underline, or a coloured bar \u2014 visual detail left to the engineer.",
+    "Whether components/Footer.tsx's local formatDate is refactored to use lib/formatDate.ts in this change or left alone \u2014 expected but not required for the spec to be met."
+  ],
+  "feature_id": "697bbda1-0565-4949-b410-dec37782a356",
+  "flows": [
+    {
+      "kind": "flowchart",
+      "source": "flowchart TD\n  A[Visitor opens /accounts/id] --> B{id in whitelist?}\n  B -->|everyday| C[Load account from data/accounts.json]\n  B -->|savings| C\n  B -->|credit-card| C\n  B -->|other| D[Call notFound helper]\n  C --> E[Render account name, masked number, balance]\n  E --> F[Render transactions newest first]\n  D --> G[Render app/not-found.tsx]",
+      "title": "Account route resolution"
+    }
+  ],
+  "must": [
+    "The system shall render an accounts overview at the home page (/) that greets the customer as 'Hello, Alex' and lists three accounts: Everyday, Savings, and Credit card.",
+    "The system shall show, for each account on the overview, the account name, a masked account number displaying only the last four digits, and the account's balance formatted in Australian dollars (e.g. $1,234.56).",
+    "The system shall show the Savings account's interest rate on the overview as '4.50% p.a.'.",
+    "The system shall show the Credit card account's amount owing and credit limit on the overview, each formatted in Australian dollars and clearly labelled.",
+    "WHEN a visitor selects an account entry on the overview the system shall navigate to /accounts/<id> where <id> is one of 'everyday', 'savings', or 'credit-card'.",
+    "WHEN a visitor opens /accounts/<id> for a known account the system shall render the account's name, masked number, balance, and its transactions newest first.",
+    "The system shall render each transaction row with the transaction date formatted as DD MMM YYYY, a description, a signed amount (money in prefixed with '+' and money out prefixed with '-'), and the balance after the transaction in Australian dollars.",
+    "The system shall style money-in amounts with a visibly distinct colour (green) in addition to the '+' prefix so that the distinction does not rely on colour alone.",
+    "The system shall ensure that for every account the balance shown on the overview equals the balance after the newest transaction on that account's detail page.",
+    "IF a visitor opens /accounts/<id> with an id that does not match a known account THEN the system shall render the existing not-found page (app/not-found.tsx) via Next.js's notFound() helper.",
+    "The system shall load accounts and transactions from a single data file at data/accounts.json containing three accounts, each with approximately twelve transactions.",
+    "The system shall render a header on every page containing the site name 'Northline Bank' linking to /, two navigation links ('Accounts' \u2192 /, 'Changelog' \u2192 /changelog), and the existing ThemeToggle.",
+    "The system shall apply a deep-blue primary colour palette to header, links, and account-card accents through CSS variables defined in app/globals.css.",
+    "WHILE any page is being rendered the system shall keep the changelog page (/changelog) and RSS feed (/changelog.xml) functioning exactly as they do today, including sort order, filters and feed structure.",
+    "The system shall never render a full account or card number in the DOM; only the last four digits appear on any surface.",
+    "WHERE dark mode is active the system shall render the deep-blue palette with contrast-appropriate variants so that text and interactive elements remain readable (WCAG 2.1 AA)."
+  ],
+  "non_functional": [
+    {
+      "applies": true,
+      "category": "performance",
+      "criteria": [
+        "AC1",
+        "AC6"
+      ],
+      "target": "Static server render; data/accounts.json <50KB; each page contentful under 1s on modest hardware",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "availability",
+      "criteria": [],
+      "target": null,
+      "why_not": "Demo site with no runtime dependencies; availability is that of the static host."
+    },
+    {
+      "applies": true,
+      "category": "security",
+      "criteria": [
+        "AC2",
+        "AC10",
+        "AC12"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "category": "privacy",
+      "criteria": [
+        "AC12"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "observability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No runtime state, external calls or error paths beyond the existing 404."
+    },
+    {
+      "applies": true,
+      "category": "accessibility",
+      "criteria": [
+        "AC8",
+        "AC11"
+      ],
+      "target": "WCAG 2.1 AA \u2014 money-in distinction carries both a sign and colour; interactive links have accessible names; body-text contrast \u22654.5:1 in both light and dark themes",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "compliance",
+      "criteria": [],
+      "target": null,
+      "why_not": "No regulatory obligation attaches to a demo of a fictional bank with fictional data."
+    }
+  ],
+  "open_questions": [
+    "AC6, AC7, AC8, AC9 and AC13 \u2014 the account detail page (app/accounts/[id]/page.tsx) does not exist today, so acceptance tests cannot import an entry point that would fail before the change and pass after. These criteria are checked by a component or e2e test added alongside the implementation, or by manual review (UMC-01).",
+    "AC10 \u2014 the 404 fall-through behaviour cannot be exercised via an existing entry point without the new dynamic route. Left to a route-level test added with the implementation (UMC-01).",
+    "AC11 \u2014 verifying the header appears on every page requires either extracting components/Header.tsx (which does not exist today) or rendering RootLayout inside jsdom (which is awkward with nested html/body). Left to a component-level test added with the extraction (UMC-01).",
+    "AC14 \u2014 the invariant 'each account has 10\u201315 transactions and balances reconcile' is naturally checked by a fixture test that reads data/accounts.json; that file does not exist today, so the test lands with the implementation (UMC-01).",
+    "AC15 \u2014 the changelog and RSS 'unchanged' criterion is a regression concern and would not fail before the change; the existing changelog test suite already covers it and no new test is added.",
+    "AC16 and AC17 \u2014 verifying no trademarked assets appear, and that a primary-blue CSS variable exists, is best done by manual review; automated checks would be brittle (UMC-01)."
+  ],
+  "outcome": "Visitors can view a fictional customer's three bank accounts and their recent transactions on the sandbox site, presented as a small internet-banking demo styled in deep blue.",
+  "rationale": "**Design shape.** One data file at `data/accounts.json` with nested transactions per account, mirroring `data/changelog.json`'s shape (one import, one source of truth, easy to keep the overview balance and newest-transaction balance in sync by hand). Slug-based ids ('everyday', 'savings', 'credit-card') for readable URLs and stable routing. A dynamic route `app/accounts/[id]/page.tsx` renders either the account or falls through to `app/not-found.tsx` via Next.js's `notFound()` helper. The header is extracted to `components/Header.tsx` and mounted inside `RootLayout` so it appears on every page; existing `ThemeToggle` and `Footer` are preserved. The deep-blue palette is expressed as CSS variables in `app/globals.css` and consumed via Tailwind classes; both light and dark modes get contrast-appropriate variants.\n\n**Bank identity.** The user's suggestion was 'world bank or something generic'. The real World Bank Group exists, so a strictly-fictional generic name (Northline Bank) is used \u2014 this is trivial to change if a different name is preferred.\n\n**Why no demo banner.** The user removed the demo-banner requirement from the original framing. The masked account numbers, absence of any password or PII prompt, and clearly fictional customer name are sufficient signals that this is not a real bank.\n\n**Why signed amounts in one column.** Modern banking UIs use one signed amount column; it reads well on narrow screens and the sign carries meaning independently of colour (accessible).\n\n**Why the credit card behaves like a spending account.** Consistency across the three accounts and one mental model of 'balance goes up with a debit, down with a credit'. The overview labels 'Owing' rather than 'Balance' for the credit card to make the sign convention unambiguous.\n\n**Standards.** DTS-04 governs date rendering (DD MMM YYYY). SEC-01 \u00a74 governs number masking (last four only). SEC-01 \u00a73 governs the URL segment (whitelist match, not eval-like). PCP-02 forbids internal work-tracking refs in customer copy; the descriptions in the fixture must avoid any 'PAY-1234'-style references. DWR-01 does not apply \u2014 no writes.\n\n**Test-coverage honesty.** The change creates new files (`data/accounts.json`, `app/accounts/[id]/page.tsx`, `components/Header.tsx`, several `lib/` helpers). Acceptance tests must import entry points that exist today, so most detail-page and header criteria fall into UMC-01: they are named and left uncovered by an executable test in this spec, to be covered by a component or e2e test added alongside the implementation. The home-page criteria (AC1\u2013AC5, AC12) can and do have an acceptance test because `app/page.tsx` already exists.",
+  "risks": [
+    {
+      "mitigation": "Author data/accounts.json with balance derived from transactions (running total from oldest to newest); add a jest test that reads data/accounts.json and asserts account.balance === newest_transaction.balance_after for every account. This test lands with the data file.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Overview balance drifts from newest-transaction balance"
+    },
+    {
+      "mitigation": "Use a distinctly non-ANZ bank name (Northline Bank); do not reproduce ANZ logos, wordmarks, or exact brand hex codes; use a generic deep-blue palette (e.g. Tailwind blue-700 / blue-800).",
+      "reference": null,
+      "severity": "medium",
+      "title": "Trademark or brand-confusion risk from ANZ-inspired blue styling"
+    },
+    {
+      "mitigation": "Prefix money-in with '+' and money-out with '-' so the distinction is available to users who cannot perceive the colour difference; keep contrast \u22654.5:1 in both themes.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Accessibility gap if money-in is signalled by colour alone"
+    },
+    {
+      "mitigation": "Store only the last four digits in data/accounts.json (never the full number); render as '\u2022\u2022\u2022\u2022 1234'; the acceptance test asserts no run of six-or-more consecutive digits appears on the home page (SEC-01 \u00a74).",
+      "reference": null,
+      "severity": "high",
+      "title": "Full account or card number leaks into the DOM"
+    },
+    {
+      "mitigation": "Preserve the script's position and ThemeProvider mounting order in app/layout.tsx exactly; the existing theme-toggle tests act as a regression check.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Anti-FOUC blocking script broken by layout changes"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [],
+    "stages": [
+      "Development",
+      "Production"
+    ]
+  },
+  "schema_version": 10,
+  "should": [
+    "The system shall show a small 'All amounts in AUD' note on each account detail page near the transaction list header.",
+    "The system shall visually indicate the currently active navigation item in the header (e.g. bolder text, underline, or a coloured bar).",
+    "The system shall preserve the existing Footer as it appears today, with its 'Last updated' line unchanged."
+  ],
+  "standards_applied": [
+    {
+      "applies": true,
+      "criteria": [
+        "AC7",
+        "AC13"
+      ],
+      "sections": [
+        "1. Absolute dates"
+      ],
+      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "sections": [],
+      "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
+      "why_not": "This feature performs no database writes. Accounts and transactions are read from a static JSON file at build time."
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC12"
+      ],
+      "sections": [
+        "The rule",
+        "How to choose the input"
+      ],
+      "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC6",
+        "AC7",
+        "AC8",
+        "AC9",
+        "AC10",
+        "AC11",
+        "AC13",
+        "AC14",
+        "AC15",
+        "AC16",
+        "AC17"
+      ],
+      "sections": [
+        "The rule",
+        "What a good entry looks like"
+      ],
+      "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC2",
+        "AC10",
+        "AC12"
+      ],
+      "sections": [
+        "\u00a71 Secrets",
+        "\u00a73 Injection",
+        "\u00a74 Sensitive data"
+      ],
+      "standard": "ANZ Security \u2014 Secure Coding Standard (SEC-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC14"
+      ],
+      "sections": [
+        "1. Internal references must not be surfaced"
+      ],
+      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+      "why_not": null
+    }
+  ],
+  "swe_constraints": [
+    "Preserve the anti-FOUC blocking script and ThemeProvider mounting order in app/layout.tsx; ThemeProvider must wrap all page content including the new Header.",
+    "The Header component must render inside RootLayout so it appears on every page including /changelog and the 404 page.",
+    "The existing Footer (components/Footer.tsx) continues to render below page content; the 'Last updated: DD MMM YYYY' behaviour is unchanged (may refactor its date formatter to the shared lib/formatDate.ts, but the rendered output must be identical).",
+    "The existing Changelog page (app/changelog/page.tsx), Changelog RSS route (app/changelog.xml/route.ts), ChangelogFilteredList and its filters must not be modified. Existing changelog tests must continue to pass without modification.",
+    "Dark mode is toggled via the .dark class on <html> (existing pattern) \u2014 do not introduce prefers-color-scheme media queries for theme switching.",
+    "No new NPM dependencies. Inline SVG icons (following components/ThemeToggle.tsx pattern) if any are needed.",
+    "The Next.js version is 16.2.6, which per AGENTS.md may differ from training data. Consult node_modules/next/dist/docs/ (App Router, dynamic routes, notFound()) before writing route or navigation code.",
+    "Account and card numbers in data/accounts.json store only the last four digits (e.g. '4821'); the full number is never present in the codebase or the DOM.",
+    "Account slug ids: 'everyday', 'savings', 'credit-card' \u2014 validate the URL param against this whitelist and call notFound() otherwise (SEC-01 \u00a73).",
+    "The deep-blue palette must be a distinct choice \u2014 do not reproduce ANZ's specific hex codes, logo, or wordmark. A generic deep-blue family (e.g. Tailwind blue-700 / blue-800 for primary, adjusted for dark mode) is appropriate.",
+    "Money-in colour must have \u22654.5:1 contrast against the row background in both light and dark modes; do not rely on colour alone \u2014 the + / - sign carries the meaning.",
+    "HomePage (app/page.tsx) must remain a synchronous server component so it can be rendered directly in Jest via @testing-library/react.",
+    "Format money via Intl.NumberFormat with locale 'en-AU' and currency 'AUD' (or an equivalent template); always two decimal places; signed prefix '+' or '-' prepended manually so the sign appears outside the currency symbol (e.g. '-$45.00').",
+    "Transaction descriptions in data/accounts.json contain no internal work-tracking references such as 'PAY-1234' (PCP-02 \u00a71)."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "app/page.tsx",
+      "reason": "Replace the Next.js starter with the accounts overview: greeting, three account cards, links to detail pages.",
+      "repository": null
+    },
+    {
+      "exists": true,
+      "path": "app/layout.tsx",
+      "reason": "Mount the new Header component and set the site title metadata; preserve the anti-FOUC blocking script and ThemeProvider wrapping.",
+      "repository": null
+    },
+    {
+      "exists": true,
+      "path": "app/globals.css",
+      "reason": "Add deep-blue primary palette CSS variables for light and dark modes.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "app/accounts/[id]/page.tsx",
+      "reason": "Dynamic route for account detail (name, masked number, balance, transactions). Uses Next.js notFound() for unknown ids. New file per Next.js App Router convention.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "data/accounts.json",
+      "reason": "Source of truth for accounts and transactions, mirroring the data/changelog.json pattern.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "lib/accounts.ts",
+      "reason": "Typed loader and helpers for reading accounts data (getAccounts, getAccountById). Matches lib/readingTime.ts and lib/slugify.ts placement convention.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "lib/formatMoney.ts",
+      "reason": "Format AUD amounts as $1,234.56 with signed prefix. Matches lib/ placement convention.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "lib/formatDate.ts",
+      "reason": "Shared DD MMM YYYY formatter for transaction dates (DTS-04). Footer's local formatter is expected to be refactored to use it.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "components/Header.tsx",
+      "reason": "New header component with site-name link, Accounts / Changelog nav, and ThemeToggle. Extracted from app/layout.tsx so it can be unit-tested and reused. Matches components/ placement convention.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "components/AccountCard.tsx",
+      "reason": "One card on the accounts overview.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "components/TransactionList.tsx",
+      "reason": "Transactions table/list on the account detail page.",
+      "repository": null
+    },
+    {
+      "exists": true,
+      "path": "components/Footer.tsx",
+      "reason": "Refactor local formatDate to use the shared lib/formatDate.ts; rendered output unchanged.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "__tests__/Home.accountsOverview.test.tsx",
+      "reason": "Acceptance test file for the home-page criteria that have an existing entry point (@/app/page).",
+      "repository": null
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "The home page shows a greeting for Alex Taylor and three account cards",
+        "Each card has a name, a masked number, and an AUD balance",
+        "There is no sign-in prompt anywhere"
+      ],
+      "references": [],
+      "role": "sandbox visitor",
+      "so_that": "I can get a feel for what an accounts overview looks like without needing to sign in",
+      "want": "to open the site and see a plausible internet-banking home page"
+    },
+    {
+      "criteria": [
+        "Clicking an account card navigates to /accounts/<id>",
+        "The account page lists ~12 transactions newest first",
+        "Money in and money out are visibly distinguished by sign and colour",
+        "The balance after each transaction is shown, and the newest one matches the overview balance"
+      ],
+      "references": [],
+      "role": "sandbox visitor",
+      "so_that": "I can see what money in / money out looks like on a statement page",
+      "want": "to open an account and see its recent transactions"
+    },
+    {
+      "criteria": [
+        "/changelog renders the same entries in the same order and format",
+        "/changelog.xml serves the same RSS 2.0 feed"
+      ],
+      "references": [],
+      "role": "sandbox visitor",
+      "so_that": "the demo doesn't regress anything already shipped",
+      "want": "the changelog to keep working exactly as it does now"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "See what a small internet-banking overview looks like without needing credentials",
+        "Understand the layout of an accounts summary and a transaction list",
+        "Navigate between an overview and per-account detail pages"
+      ],
+      "name": "Sandbox visitor",
+      "pain_points": [
+        "Real internet-banking demos require sign-up or a sandbox account",
+        "The Pixie sandbox currently shows a placeholder home page with nothing meaningful to click"
+      ]
+    }
+  ],
+  "wireframes": [],
+  "wont": [
+    "The system shall not present a sign-in, sign-out, or authentication flow of any kind.",
+    "The system shall not support transfers, payments, or transaction search.",
+    "The system shall not display a demo-banner strip on any page.",
+    "The system shall not include any real bank's logo, wordmark or trademarked assets.",
+    "The system shall not persist any state or make any mutation against an external data store."
+  ]
+}
