@@ -1,0 +1,66 @@
+{
+  "branch": "pixie/dc61fbd7-0c1d-4007-af40-b63aee203123",
+  "decisions_log": [
+    {
+      "decision": "Used app/not-found.tsx (Next.js App Router built-in) for custom 404 handling.",
+      "rationale": "This is the idiomatic Next.js App Router pattern; the framework automatically serves this file for any unmatched route without any extra configuration."
+    },
+    {
+      "decision": "Mirrored the app/page.tsx outer/inner div structure (bg-zinc-50 dark:bg-black outer, bg-white dark:bg-black inner) on the 404 page.",
+      "rationale": "Ensures visual continuity with the rest of the site and reuses existing Tailwind tokens as required by the SWE constraint."
+    },
+    {
+      "decision": "Used an inline SVG alert/info circle icon (aria-hidden) as the subtle graphic for the error state.",
+      "rationale": "No new assets or dependencies are needed; the icon is decorative and correctly hidden from assistive technology with aria-hidden='true'."
+    },
+    {
+      "decision": "Used next/link for the 'Return to Home' button to ensure client-side navigation.",
+      "rationale": "Consistent with Next.js best practices for internal navigation and satisfies AC2."
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "The visual style of the 'subtle icon or graphic' was listed as a deferred decision in the sketch. An inline SVG alert circle was chosen as the simplest no-new-assets approach \u2014 confirm or replace with a preferred icon."
+    }
+  ],
+  "feature_id": "dc61fbd7-0c1d-4007-af40-b63aee203123",
+  "files_changed": [
+    {
+      "change_kind": "new",
+      "path": "app/not-found.tsx",
+      "summary": "Custom 404 page using Next.js App Router not-found convention. Displays the required error message, a 'Return to Home' link to '/', an aria-hidden decorative SVG alert icon, and mirrors the page.tsx outer/inner layout with zinc colour tokens for light/dark theme support."
+    },
+    {
+      "change_kind": "new",
+      "path": "__tests__/not-found.test.tsx",
+      "summary": "Jest + React Testing Library tests covering the custom 404 page across all four acceptance criteria."
+    }
+  ],
+  "pr_ref": "stub://pr/dc61fbd7-0c1d-4007-af40-b63aee203123",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "All 31 tests pass (npm test), lint is clean (npm run lint), and TypeScript type-check passes (tsc --noEmit). The new file is confined to app/not-found.tsx; app/layout.tsx and app/page.tsx were not modified. Tailwind zinc colour tokens from page.tsx were reused throughout. The 'Return to Home' link uses next/link and href='/'. The decorative SVG carries aria-hidden='true'. Dark-mode classes are applied via Tailwind's dark: variant, consistent with the site's ThemeProvider pattern. AC4 (dark theme) is covered structurally by the presence of the correct dark: Tailwind classes; runtime dark-mode rendering is exercised by the ThemeProvider tests already in the suite."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/not-found.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/not-found.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/not-found.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/not-found.test.tsx"
+    }
+  ]
+}
