@@ -1,0 +1,266 @@
+{
+  "acceptance_criteria": [
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "the Footer component is rendered",
+      "how": null,
+      "id": "AC1",
+      "then": "a link with visible text \"Source\" is present and its href attribute is https://github.com/pixie-sandbox/pixie-sandbox-site",
+      "when": "the page is displayed"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "the Source link is rendered",
+      "how": null,
+      "id": "AC2",
+      "then": "it has target=\"_blank\" and rel=\"noopener noreferrer\"",
+      "when": "the link is inspected"
+    },
+    {
+      "checked_by": "existing_tests",
+      "existing_tests": [
+        "__tests__/Footer.test.tsx"
+      ],
+      "given": "the Footer component is rendered",
+      "how": null,
+      "id": "AC3",
+      "then": "the existing GitHub icon link still has aria-label \"View the Pixie sandbox site source code on GitHub\" and its SVG icon is present",
+      "when": "the page is displayed"
+    },
+    {
+      "checked_by": "existing_tests",
+      "existing_tests": [
+        "__tests__/Footer.lastUpdated.test.tsx",
+        "__tests__/Footer.test.tsx"
+      ],
+      "given": "the Footer component is rendered",
+      "how": null,
+      "id": "AC4",
+      "then": "the \"Last updated\" row and the BackToTop button behave exactly as they did before",
+      "when": "the page is displayed"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2"
+      ],
+      "entry_points": [
+        "@/components/Footer"
+      ],
+      "path": "__tests__/Footer.test.tsx",
+      "source": "it('AC1: renders a Source link to the GitHub repository', () => {\n  render(<Footer />);\n  const link = screen.getByRole('link', { name: /source/i });\n  expect(link).toBeInTheDocument();\n  expect(link).toHaveAttribute(\n    'href',\n    'https://github.com/pixie-sandbox/pixie-sandbox-site'\n  );\n});\n\nit('AC2: the Source link opens in a new tab', () => {\n  render(<Footer />);\n  const link = screen.getByRole('link', { name: /source/i });\n  expect(link).toHaveAttribute('target', '_blank');\n  expect(link).toHaveAttribute('rel', 'noopener noreferrer');\n});"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The Source link is placed before the existing GitHub icon link in the same flex row, separated by a space.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The existing GitHub icon link remains unchanged \u2014 the Source link is an addition, not a replacement.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "No feature flag is needed for this change given its small scope.",
+      "confidence": "medium"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Add a plain-text link labelled \"Source\" in the site footer, pointing to the GitHub repository https://github.com/pixie-sandbox/pixie-sandbox-site. The link is placed inline with the existing GitHub icon link in the same flex row, using matching styling. The existing GitHub icon link and all existing tests remain unchanged.",
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "graph TD\n  A[Footer] --> B[Flex row]\n  B --> C[Year span]\n  B --> D[Separator]\n  B --> E[Source link]\n  B --> F[GitHub icon link]\n  B --> G[BackToTop]\n  A --> H[Last updated paragraph]",
+    "title": "Footer structure"
+  },
+  "constraints": [
+    {
+      "detail": "The link must point to https://github.com/pixie-sandbox/pixie-sandbox-site \u2014 the same URL already used by the existing GitHub icon link in Footer.tsx line 26",
+      "kind": "integration"
+    },
+    {
+      "detail": "The change must be limited to components/Footer.tsx and a new test in __tests__/Footer.test.tsx (or a new test file) \u2014 no new component files",
+      "kind": "other"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [
+    "aria-label text for the Source link \u2014 the spec suggests 'Source code on GitHub' but the exact wording is left to the engineer to decide based on what feels most natural alongside the existing 'View the Pixie sandbox site source code on GitHub' label"
+  ],
+  "feature_id": "0f264593-feab-47df-8025-ff11c4fc7caa",
+  "flows": [],
+  "must": [
+    "WHEN the Footer component renders the system shall include a link with visible text \"Source\" that points to https://github.com/pixie-sandbox/pixie-sandbox-site",
+    "The system shall open the Source link in a new tab (target=\"_blank\") with rel=\"noopener noreferrer\"",
+    "The Source link shall use the same styling classes as the existing GitHub link (font-medium text-zinc-950 dark:text-zinc-50 hover:underline)",
+    "The Source link shall be placed before the existing GitHub icon link in the same flex row",
+    "The system shall not modify the existing GitHub icon link, its aria-label, its SVG, or its test assertions",
+    "The system shall not alter the BackToTop component, the changelog data, or the \"Last updated\" row"
+  ],
+  "non_functional": [
+    {
+      "applies": false,
+      "category": "performance",
+      "criteria": [],
+      "target": null,
+      "why_not": "Adding one text link has no measurable performance impact"
+    },
+    {
+      "applies": true,
+      "category": "security",
+      "criteria": [
+        "AC2"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "privacy",
+      "criteria": [],
+      "target": null,
+      "why_not": "No personal data is collected or changed"
+    },
+    {
+      "applies": false,
+      "category": "observability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No analytics or logging is involved"
+    },
+    {
+      "applies": true,
+      "category": "accessibility",
+      "criteria": [
+        "AC1"
+      ],
+      "target": "Source link is keyboard-focusable and has an accessible name",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "compliance",
+      "criteria": [],
+      "target": null,
+      "why_not": "No regulatory requirements are affected by adding a footer link"
+    }
+  ],
+  "open_questions": [],
+  "outcome": "Visitors can click a \"Source\" link in the footer to open the GitHub repository in a new tab.",
+  "rationale": "The feature asks for a 'Source' link in the footer pointing to the GitHub repo. The footer already has a GitHub icon link to the same URL, so the change is additive. Placing the Source text link before the icon link keeps the flex row layout intact and gives screen-reader users a clear text anchor before the icon. Using the same styling classes ensures visual consistency without introducing new CSS. No new component is needed \u2014 an inline <a> element is sufficient. The existing tests for the GitHub link and BackToTop are preserved and must continue to pass.",
+  "risks": [
+    {
+      "mitigation": "The new Source link uses a different accessible name (/source/i), so getByRole('link', { name: /github/i }) continues to select only the existing GitHub link. Verify all existing tests still pass.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Breaking existing test assertions that select the GitHub link by role/name"
+    },
+    {
+      "mitigation": "Using the same styling classes and adding only one short text link keeps the row width change minimal. Review at 375px width.",
+      "reference": null,
+      "severity": "low",
+      "title": "Visual layout shift in the footer flex row"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [
+      "Zero test failures in Footer.test.tsx after the change"
+    ],
+    "stages": [
+      "Development",
+      "UAT",
+      "Production canary",
+      "Full release"
+    ]
+  },
+  "schema_version": 11,
+  "should": [
+    "The Source link shall have an aria-label that is more descriptive than the visible text, e.g. \"Source code on GitHub\"",
+    "The Source link and the GitHub icon link shall be separated by a single space character for visual clarity"
+  ],
+  "standards_applied": [
+    {
+      "applies": true,
+      "criteria": [
+        "AC1",
+        "AC2"
+      ],
+      "sections": [
+        "2.4.4 Link Purpose (In Context)",
+        "4.1.2 Name, Role, Value"
+      ],
+      "standard": "Accessibility (WCAG 2.1 AA)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC2"
+      ],
+      "sections": [
+        "External link security (noopener noreferrer)"
+      ],
+      "standard": "Security",
+      "why_not": null
+    }
+  ],
+  "swe_constraints": [
+    "Add the Source link as an inline <a> element inside the existing flex row (line 21\u201345 of Footer.tsx), before the existing GitHub icon link",
+    "Use the same styling classes as the existing GitHub link: font-medium text-zinc-950 dark:text-zinc-50 hover:underline",
+    "Add target=\"_blank\" and rel=\"noopener noreferrer\" on the Source link, matching the existing GitHub link",
+    "Do not modify the existing GitHub icon link, its aria-label, its SVG, or any existing test assertions",
+    "Do not create a new component file \u2014 the link is added inline in Footer.tsx"
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/Footer.tsx",
+      "reason": "holds the footer layout \u2014 the Source link is added inline here",
+      "repository": null
+    },
+    {
+      "exists": true,
+      "path": "__tests__/Footer.test.tsx",
+      "reason": "existing test file for Footer \u2014 new test for the Source link is added here",
+      "repository": null
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "The link text is exactly \"Source\"",
+        "The link href is https://github.com/pixie-sandbox/pixie-sandbox-site",
+        "The link opens in a new tab"
+      ],
+      "references": [],
+      "role": "Site visitor",
+      "so_that": "I can find and navigate to the project's source code",
+      "want": "a clearly labelled \"Source\" link in the footer that opens the GitHub repository"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Find the source code repository for the site"
+      ],
+      "name": "Site visitor",
+      "pain_points": [
+        "The GitHub link is icon-based and may not be obvious to users looking for source code"
+      ]
+    }
+  ],
+  "wireframes": [],
+  "wont": [
+    "This change does not add a separate \"Source\" page or route",
+    "This change does not modify the changelog, the BackToTop button, or any other footer content",
+    "This change does not introduce a new component file \u2014 the link is added inline in Footer.tsx"
+  ]
+}
