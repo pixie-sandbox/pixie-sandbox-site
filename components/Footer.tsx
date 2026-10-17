@@ -15,6 +15,7 @@ function getLatestEntry(entries: ChangelogEntry[]): ChangelogEntry | null {
 export default function Footer() {
   const year = new Date().getFullYear();
   const latestEntry = getLatestEntry(changelog as ChangelogEntry[]);
+  const buildDate = process.env.NEXT_PUBLIC_BUILD_DATE || '';
 
   return (
     <footer className="w-full py-6 px-8 border-t border-black/[.08] dark:border-white/[.145]">
@@ -46,6 +47,11 @@ export default function Footer() {
         {latestEntry && (
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Last updated: {formatDate(latestEntry.date)}
+          </p>
+        )}
+        {buildDate && (
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Built: {buildDate}
           </p>
         )}
       </div>
