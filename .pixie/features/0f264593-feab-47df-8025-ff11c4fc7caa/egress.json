@@ -1,0 +1,7 @@
+{
+  "allowlist": null,
+  "description": "Unrestricted \u2014 no Domain in this branch sets an egress allowlist.",
+  "enforcement": "unrestricted",
+  "filesystem": "unrestricted",
+  "network_not_contained_because": "bubblewrap is installed but could not create a namespace on this host \u2014 unprivileged user namespaces are usually the reason, and a container runtime is usually what disabled them."
+}
