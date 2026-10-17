@@ -1,0 +1,202 @@
+{
+  "acceptance_criteria": [
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "NEXT_PUBLIC_BUILD_DATE is set to '2026-10-17' at build time",
+      "how": null,
+      "id": "AC1",
+      "then": "the footer contains the text 'Built: 2026-10-17'",
+      "when": "a visitor loads any page containing the footer"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "NEXT_PUBLIC_BUILD_DATE is not set",
+      "how": null,
+      "id": "AC2",
+      "then": "no element matching 'Built:' is present in the footer",
+      "when": "the footer renders"
+    },
+    {
+      "checked_by": "a_person",
+      "existing_tests": [],
+      "given": "the footer is rendered with a build date present",
+      "how": "Compare the 'Built:' paragraph against the 'Last updated' paragraph \u2014 both should share text-sm and the zinc-600 / dark:zinc-400 colour pair",
+      "id": "AC3",
+      "then": "the 'Built:' line uses the same text size and muted zinc colour as the 'Last updated' line immediately above it",
+      "when": "the page is inspected visually and via DevTools"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2"
+      ],
+      "entry_points": [
+        "@/components/Footer"
+      ],
+      "path": "__tests__/FooterBuildDate.test.tsx",
+      "source": "import { render, screen } from \"@testing-library/react\";\nimport Footer from \"@/components/Footer\";\n\ndescribe(\"Footer build date\", () => {\n  const ORIGINAL = process.env.NEXT_PUBLIC_BUILD_DATE;\n\n  afterEach(() => {\n    if (ORIGINAL === undefined) {\n      delete process.env.NEXT_PUBLIC_BUILD_DATE;\n    } else {\n      process.env.NEXT_PUBLIC_BUILD_DATE = ORIGINAL;\n    }\n  });\n\n  it(\"AC1: shows 'Built: YYYY-MM-DD' when NEXT_PUBLIC_BUILD_DATE is set\", () => {\n    process.env.NEXT_PUBLIC_BUILD_DATE = \"2026-10-17\";\n    render(<Footer />);\n    expect(screen.getByText(/Built: 2026-10-17/)).toBeInTheDocument();\n  });\n\n  it(\"AC2: renders no 'Built:' line when NEXT_PUBLIC_BUILD_DATE is absent\", () => {\n    delete process.env.NEXT_PUBLIC_BUILD_DATE;\n    render(<Footer />);\n    expect(screen.queryByText(/Built:/)).not.toBeInTheDocument();\n  });\n});"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The YYYY-MM-DD format in the initial framing is intentional and does not need reformatting to DD MMM YYYY \u2014 DTS-04 \u00a71 applies to customer-facing dates; this is build metadata.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "Silently omitting the line when the env var is absent is the correct behaviour for local development.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Add a 'Built: YYYY-MM-DD' line to the site footer, showing the date the site was last built. The date is injected at build time via the NEXT_PUBLIC_BUILD_DATE environment variable. When the variable is absent (local development), the line is not rendered.",
+  "component_diagram": null,
+  "constraints": [
+    {
+      "detail": "NEXT_PUBLIC_BUILD_DATE must be set in the environment before `next build` runs. The build pipeline (CI or container build script) is responsible for providing it, e.g. NEXT_PUBLIC_BUILD_DATE=$(date -u +%F) next build.",
+      "kind": "integration"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [
+    "Where in the build pipeline NEXT_PUBLIC_BUILD_DATE is set (package.json build script, CI workflow step, or next.config.ts env injection). The engineer should pick the approach that fits the container build described in ADR-0144."
+  ],
+  "feature_id": "52ed7d88-77c1-44db-9f27-53d8b09a9917",
+  "flows": [],
+  "must": [
+    "WHEN NEXT_PUBLIC_BUILD_DATE is set WHILE the footer renders the system shall display the text 'Built: <value>' where <value> is the YYYY-MM-DD string from that variable.",
+    "IF NEXT_PUBLIC_BUILD_DATE is not set THEN the system shall not render any 'Built:' line in the footer.",
+    "The system shall style the build-date line to match the existing 'Last updated' paragraph in the footer (text-sm, muted zinc colour, mt-1 top margin)."
+  ],
+  "non_functional": [
+    {
+      "applies": false,
+      "category": "performance",
+      "criteria": [],
+      "target": null,
+      "why_not": "The build date is a static string baked in at build time; it adds no runtime computation or network call."
+    },
+    {
+      "applies": false,
+      "category": "availability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No new service dependency is introduced."
+    },
+    {
+      "applies": false,
+      "category": "security",
+      "criteria": [],
+      "target": null,
+      "why_not": "The value is a static YYYY-MM-DD string set in the build environment; it carries no secrets and is not derived from user input."
+    },
+    {
+      "applies": false,
+      "category": "privacy",
+      "criteria": [],
+      "target": null,
+      "why_not": "No personal data is involved."
+    },
+    {
+      "applies": false,
+      "category": "observability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No new code paths that require logging or tracing."
+    },
+    {
+      "applies": true,
+      "category": "accessibility",
+      "criteria": [
+        "AC1"
+      ],
+      "target": "Plain-text paragraph; no ARIA attributes needed beyond what the footer landmark already provides.",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "compliance",
+      "criteria": [],
+      "target": null,
+      "why_not": "This is build metadata, not a customer-facing date display governed by DTS-04."
+    }
+  ],
+  "open_questions": [],
+  "outcome": "Every deployed build of the site shows its build date in the footer, making it immediately obvious which version is running without opening CI logs.",
+  "rationale": "Using `NEXT_PUBLIC_BUILD_DATE` is the idiomatic Next.js pattern for build-time constants: the value is statically inlined by the compiler, so there is no runtime cost and no server-side logic needed. The footer already has a 'Last updated' paragraph (`mt-1 text-sm text-zinc-600 dark:text-zinc-400`); the new line sits below it in the same visual rhythm. DTS-04 (DD MMM YYYY) is not applied here because build metadata is not a customer-facing date. The change touches exactly two files: the component and its test.",
+  "risks": [
+    {
+      "mitigation": "Verify the 'Built:' line is visible in UAT before full release; add NEXT_PUBLIC_BUILD_DATE to the container build command as described in ADR-0144.",
+      "reference": null,
+      "severity": "low",
+      "title": "Build date absent if NEXT_PUBLIC_BUILD_DATE not set in pipeline"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [],
+    "stages": [
+      "Development",
+      "UAT",
+      "Full release"
+    ]
+  },
+  "schema_version": 11,
+  "should": [],
+  "standards_applied": [],
+  "swe_constraints": [
+    "Read the build date from process.env.NEXT_PUBLIC_BUILD_DATE \u2014 this is the Next.js convention for build-time public constants.",
+    "Match the existing 'Last updated' paragraph styling exactly: className='mt-1 text-sm text-zinc-600 dark:text-zinc-400'.",
+    "Do not pass the value through formatDate \u2014 render the raw YYYY-MM-DD string.",
+    "Render nothing when NEXT_PUBLIC_BUILD_DATE is undefined or an empty string."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/Footer.tsx",
+      "reason": "Add the conditional 'Built: YYYY-MM-DD' paragraph below the existing 'Last updated' paragraph.",
+      "repository": null
+    },
+    {
+      "exists": true,
+      "path": "__tests__/Footer.test.tsx",
+      "reason": "Existing footer test file; new AC1/AC2 tests added alongside existing ones.",
+      "repository": null
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "Footer shows 'Built: YYYY-MM-DD' matching the date the build ran.",
+        "Line is absent in local development when the env var is not set."
+      ],
+      "references": [],
+      "role": "developer",
+      "so_that": "I can confirm at a glance which version of the site is deployed",
+      "want": "to see the build date in the site footer"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Confirm which build is deployed at a glance, without opening CI logs."
+      ],
+      "name": "Developer / operator",
+      "pain_points": [
+        "No visible build identifier on the site today."
+      ]
+    }
+  ],
+  "wireframes": [],
+  "wont": [
+    "The system will not reformat the build date \u2014 it is rendered as-is from the environment variable.",
+    "The system will not infer the build date from any file timestamp or runtime value."
+  ]
+}
