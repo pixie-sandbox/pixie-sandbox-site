@@ -26,6 +26,16 @@ export default function Footer() {
             href="https://github.com/pixie-sandbox/pixie-sandbox-site"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Source code repository"
+            className="font-medium text-zinc-950 dark:text-zinc-50 hover:underline"
+          >
+            Source
+          </a>
+          {" "}
+          <a
+            href="https://github.com/pixie-sandbox/pixie-sandbox-site"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="View the Pixie sandbox site source code on GitHub"
             className="inline-flex items-center gap-1.5 font-medium text-zinc-950 dark:text-zinc-50 hover:underline"
           >

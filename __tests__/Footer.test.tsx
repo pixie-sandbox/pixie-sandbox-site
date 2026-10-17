@@ -12,7 +12,7 @@ describe("Footer", () => {
 
   it("AC1: renders a link to the GitHub repository", () => {
     render(<Footer />);
-    const link = screen.getByRole("link", { name: /github/i });
+    const link = screen.getByRole("link", { name: /GitHub/ });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute(
       "href",
@@ -49,5 +49,30 @@ describe("Footer", () => {
   it("renders a footer element", () => {
     render(<Footer />);
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+  });
+
+  it("AC1: renders a Source link to the GitHub repository", () => {
+    render(<Footer />);
+    const link = screen.getByRole("link", { name: /source code repository/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute(
+      "href",
+      "https://github.com/pixie-sandbox/pixie-sandbox-site"
+    );
+  });
+
+  it("AC2: the Source link opens in a new tab", () => {
+    render(<Footer />);
+    const link = screen.getByRole("link", { name: /source code repository/i });
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("the Source link has an accessible aria-label", () => {
+    render(<Footer />);
+    const link = screen.getByRole("link", {
+      name: /source code repository/i,
+    });
+    expect(link).toBeInTheDocument();
   });
 });
