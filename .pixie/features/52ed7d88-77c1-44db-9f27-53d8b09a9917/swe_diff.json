@@ -1,0 +1,55 @@
+{
+  "branch": "pixie/52ed7d88-77c1-44db-9f27-53d8b09a9917",
+  "decisions_log": [
+    {
+      "decision": "Tests placed in __tests__/FooterBuildDate.test.tsx (a new file) rather than added to __tests__/Footer.test.tsx",
+      "rationale": "The design.json acceptance_tests block specifies the path __tests__/FooterBuildDate.test.tsx. The task.md also mentions Footer.test.tsx as a possible home, but the machine-readable design file is more authoritative and a separate file avoids polluting existing tests that cover unrelated footer behaviour."
+    },
+    {
+      "decision": "NEXT_PUBLIC_BUILD_DATE is not set in package.json build script or next.config.ts",
+      "rationale": "The deferred decision in the spec says the build pipeline (CI/container build) is responsible for providing the variable. Injecting it inside next.config.ts would require reading a file timestamp (prohibited by the Won't list). The correct injection point is NEXT_PUBLIC_BUILD_DATE=$(date -u +%F) next build in the container build command, per ADR-0144."
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "ts-node is not installed in this sandbox (it is an optional peer dependency of jest-config), so the Jest test suite cannot execute here. The CI workflow does not include npm test, so this does not block CI. A human should confirm the tests pass in an environment with ts-node available."
+    },
+    {
+      "blocker": false,
+      "question": "npm run build fails in this sandbox because Node.js 18 is present but Next.js requires >=20.9.0. This is a pre-existing environment constraint unrelated to this change."
+    }
+  ],
+  "feature_id": "52ed7d88-77c1-44db-9f27-53d8b09a9917",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/Footer.tsx",
+      "summary": "Read NEXT_PUBLIC_BUILD_DATE from process.env and conditionally render a 'Built: <value>' paragraph below the 'Last updated' line, using identical styling (mt-1 text-sm text-zinc-600 dark:text-zinc-400). Omits the paragraph entirely when the variable is absent or empty."
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/FooterBuildDate.test.tsx",
+      "summary": "New test file covering AC1 (build date shown when env var is set) and AC2 (no 'Built:' line rendered when env var is absent)."
+    }
+  ],
+  "outcome": "built",
+  "pr_ref": "stub://pr/52ed7d88-77c1-44db-9f27-53d8b09a9917",
+  "schema_version": 2,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "AC3 is a visual/DevTools check that the spec explicitly marks as requiring a human reviewer; no automated test is needed or added for it. The className on the new paragraph matches the existing 'Last updated' paragraph exactly: 'mt-1 text-sm text-zinc-600 dark:text-zinc-400'."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/FooterBuildDate.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/FooterBuildDate.test.tsx"
+    }
+  ]
+}
