@@ -1,0 +1,51 @@
+{
+  "branch": "pixie/415b8d6d-71a9-422e-ae68-be02a6e46d45",
+  "decisions_log": [
+    {
+      "decision": "Single-line text insertion inside the existing <span> element",
+      "rationale": "The spec requires no new component, no new className, and no structural change \u2014 just appending 'Pixie Sandbox' after the year inside the existing span that already has the correct muted styling"
+    },
+    {
+      "decision": "Test uses regex-based text matching for the year",
+      "rationale": "The year is dynamic (new Date().getFullYear()), so the test uses a RegExp to match whatever year is current at test runtime, matching the pattern already used in the existing AC1 test"
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "npm run test fails due to missing ts-node in devDependencies \u2014 a pre-existing repo issue not introduced by this change"
+    },
+    {
+      "blocker": false,
+      "question": "npm run build fails because the environment has Node.js 18.20.4 but Next.js 16 requires >= 20.9.0 \u2014 a pre-existing environment constraint"
+    }
+  ],
+  "feature_id": "415b8d6d-71a9-422e-ae68-be02a6e46d45",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/Footer.tsx",
+      "summary": "Appended ' Pixie Sandbox' to the existing copyright span so it reads '&copy; {year} Pixie Sandbox'"
+    },
+    {
+      "change_kind": "modified",
+      "path": "__tests__/Footer.test.tsx",
+      "summary": "Added AC2 test assertion verifying the full copyright line contains both the year and 'Pixie Sandbox'"
+    }
+  ],
+  "outcome": "built",
+  "pr_ref": "stub://pr/415b8d6d-71a9-422e-ae68-be02a6e46d45",
+  "schema_version": 2,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "Lint and type-check pass. The test suite and build have pre-existing blockers (missing ts-node dependency, Node.js version mismatch) that are unrelated to this change. The Footer change itself is a single-line insertion that matches all SWE constraints: no new className, no structural changes, existing styling preserved, dot separator and GitHub link untouched."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/Footer.test.tsx"
+    }
+  ]
+}
