@@ -1,0 +1,194 @@
+{
+  "acceptance_criteria": [
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "the Footer component is rendered",
+      "how": null,
+      "id": "AC1",
+      "then": "the footer contains a <span> with the current year (e.g. \"2026\")",
+      "when": "the page is displayed"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "the Footer component is rendered",
+      "how": null,
+      "id": "AC2",
+      "then": "the footer contains the text \"Pixie Sandbox\" adjacent to the copyright year (the visible line reads \"\u00a9 {year} Pixie Sandbox\")",
+      "when": "the page is displayed"
+    },
+    {
+      "checked_by": "existing_tests",
+      "existing_tests": [
+        "__tests__/Footer.test.tsx"
+      ],
+      "given": "the Footer component is rendered",
+      "how": null,
+      "id": "AC3",
+      "then": "the existing GitHub link, BackToTop component, and last-updated paragraph behave exactly as they did before",
+      "when": "the page is displayed"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2"
+      ],
+      "entry_points": [
+        "@/components/Footer"
+      ],
+      "path": "__tests__/Footer.test.tsx",
+      "source": "import { render, screen } from \"@testing-library/react\";\nimport Footer from \"@/components/Footer\";\n\ndescribe(\"Footer copyright\", () => {\n  const currentYear = new Date().getFullYear().toString();\n\n  it(\"AC1: renders the current year in a span\", () => {\n    render(<Footer />);\n    expect(screen.getByText(new RegExp(currentYear), { selector: \"span\" })).toBeInTheDocument();\n  });\n\n  it(\"AC2: renders the full copyright line including 'Pixie Sandbox'\", () => {\n    render(<Footer />);\n    const span = screen.getByText(new RegExp(currentYear), { selector: \"span\" });\n    expect(span).toHaveTextContent(new RegExp(`${currentYear}.*Pixie Sandbox`));\n  });\n});"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The copyright text should sit on the same line as the existing \"\u00a9 {year}\" inside the existing span, followed by the dot separator and GitHub link.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "No separate component is needed \u2014 the change is a one-line text addition inside the existing Footer component.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "The site footer (components/Footer.tsx) currently renders a copyright line as \"\u00a9 {year}\" followed by a dot and a GitHub link. This change adds the text \"Pixie Sandbox\" after the year so the full line reads \"\u00a9 {year} Pixie Sandbox\". The year is computed client-side via `new Date().getFullYear()` which already exists in the component.",
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "graph TD\n  A[Footer] --> B[span: copyright line]\n  A --> C[BackToTop]\n  A --> D[p: last updated]\n  B --> E[&copy; {year} Pixie Sandbox]\n  B --> F[dot separator]\n  B --> G[GitHub link]",
+    "title": "Footer component structure"
+  },
+  "constraints": [
+    {
+      "detail": "No additional runtime cost \u2014 the year is already computed via `new Date().getFullYear()` on every render.",
+      "kind": "performance"
+    },
+    {
+      "detail": "Must match the existing muted text styling (`text-zinc-600 dark:text-zinc-400`) used by the copyright span.",
+      "kind": "other"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [],
+  "feature_id": "415b8d6d-71a9-422e-ae68-be02a6e46d45",
+  "flows": [],
+  "must": [
+    "WHEN the Footer component renders the system shall display the text \"\u00a9 {current year} Pixie Sandbox\" where {current year} is the result of `new Date().getFullYear()`.",
+    "The system shall render the copyright text inside a <span> element.",
+    "The system shall not alter the existing GitHub link, BackToTop component, or last-updated paragraph.",
+    "The system shall preserve the existing CSS classes on the footer container and its children."
+  ],
+  "non_functional": [
+    {
+      "applies": true,
+      "category": "accessibility",
+      "criteria": [
+        "AC2",
+        "AC3"
+      ],
+      "target": "copyright text is perceivable and does not interfere with existing accessible names",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "category": "performance",
+      "criteria": [
+        "AC1",
+        "AC2"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "category": "security",
+      "criteria": [
+        "AC2"
+      ],
+      "target": null,
+      "why_not": null
+    }
+  ],
+  "open_questions": [],
+  "outcome": "Visitors see \"\u00a9 {current year} Pixie Sandbox\" in the site footer.",
+  "rationale": "The feature request is minimal: append 'Pixie Sandbox' to the existing copyright line. The Footer component already computes the year client-side and renders it in a span with the correct styling. The change is a single insertion point inside that span. No new components, contracts, or data changes are needed. Existing tests for the year and the GitHub link will continue to pass; a new test verifies the full copyright string.",
+  "risks": [
+    {
+      "mitigation": "The existing code already uses client-side `new Date().getFullYear()` inside a React component, so this is an existing pattern \u2014 no new risk introduced.",
+      "reference": null,
+      "severity": "low",
+      "title": "Year mismatch between server and client during SSR"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [
+      "No regressions in Footer.test.tsx tests (existing + new assertion)"
+    ],
+    "stages": [
+      "Development",
+      "UAT",
+      "Production canary",
+      "Full release"
+    ]
+  },
+  "schema_version": 11,
+  "should": [],
+  "standards_applied": [
+    {
+      "applies": true,
+      "criteria": [
+        "AC2"
+      ],
+      "sections": [
+        "Text content must be readable and not hidden"
+      ],
+      "standard": "Accessibility \u2014 text must be perceivable",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC3"
+      ],
+      "sections": [
+        "Links must have an accessible name"
+      ],
+      "standard": "Accessibility \u2014 accessible name for links",
+      "why_not": null
+    }
+  ],
+  "swe_constraints": [
+    "Append ' Pixie Sandbox' inside the existing <span>&copy; {year}</span> so it reads <span>&copy; {year} Pixie Sandbox</span>.",
+    "Do not modify the dot separator, the GitHub link, the BackToTop component, or the last-updated paragraph.",
+    "Match the existing span styling \u2014 no new className needed.",
+    "Add a test assertion in __tests__/Footer.test.tsx that verifies the full copyright string contains both the year and 'Pixie Sandbox'."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/Footer.tsx",
+      "reason": "holds the copyright line that needs the 'Pixie Sandbox' text appended",
+      "repository": null
+    },
+    {
+      "exists": true,
+      "path": "__tests__/Footer.test.tsx",
+      "reason": "existing test file that needs a new assertion for the full copyright line",
+      "repository": null
+    }
+  ],
+  "user_stories": [],
+  "users": [],
+  "wireframes": [],
+  "wont": [
+    "The system shall not change the copyright text format beyond appending \"Pixie Sandbox\" (no clickable brand link, no different wording).",
+    "The system shall not introduce server-side rendering of the year \u2014 the existing client-side `new Date().getFullYear()` call remains."
+  ]
+}
