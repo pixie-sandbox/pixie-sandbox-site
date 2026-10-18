@@ -20,7 +20,7 @@ export default function Footer() {
     <footer className="w-full py-6 px-8 border-t border-black/[.08] dark:border-white/[.145]">
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center justify-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-          <span>&copy; {year}</span>
+          <span>&copy; {year} Pixie Sandbox</span>
           <span>&middot;</span>
           <a
             href="https://github.com/pixie-sandbox/pixie-sandbox-site"

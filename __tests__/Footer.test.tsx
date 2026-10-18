@@ -4,10 +4,16 @@ import Footer from "@/components/Footer";
 describe("Footer", () => {
   const currentYear = new Date().getFullYear().toString();
 
-  it("AC1: renders the current year", () => {
+  it("AC1: renders the current year in a span", () => {
     render(<Footer />);
     // Use the span selector to avoid matching the "Last updated" date paragraph
     expect(screen.getByText(new RegExp(currentYear), { selector: "span" })).toBeInTheDocument();
+  });
+
+  it("AC2: renders the full copyright line including 'Pixie Sandbox'", () => {
+    render(<Footer />);
+    const span = screen.getByText(new RegExp(currentYear), { selector: "span" });
+    expect(span).toHaveTextContent(new RegExp(`${currentYear}.*Pixie Sandbox`));
   });
 
   it("AC1: renders a link to the GitHub repository", () => {
