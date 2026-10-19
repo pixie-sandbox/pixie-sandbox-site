@@ -1,0 +1,40 @@
+{
+  "branch": "pixie/445d9c07-27d4-41bd-b578-9ac2317f28b6",
+  "decisions_log": [
+    {
+      "decision": "components/Footer.tsx required no changes \u2014 it already uses new Date().getFullYear() as the BA spec intended.",
+      "rationale": "The grounding notes in the task confirmed the implementation was already correct. Modifying a working implementation to match itself would be a no-op and could introduce churn."
+    },
+    {
+      "decision": "Added a Date-mocking AC2 test to __tests__/Footer.test.tsx rather than relying solely on the existing AC1 test to cover AC2.",
+      "rationale": "The existing 'AC1: renders the current year' test uses the real Date and would pass even if the year were hardcoded to the current year. The new AC2 test mocks Date to return year 2099, which proves the component reads the year dynamically from the runtime environment."
+    }
+  ],
+  "deferred_questions": [],
+  "feature_id": "445d9c07-27d4-41bd-b578-9ac2317f28b6",
+  "files_changed": [
+    {
+      "change_kind": "modify",
+      "path": "__tests__/Footer.test.tsx",
+      "summary": "Added AC2 test that mocks Date.getFullYear to return 2099 and asserts the Footer component reflects the mocked year, proving the year is sourced from the runtime Date and not hardcoded. Existing 5 tests were already passing."
+    }
+  ],
+  "pr_ref": "stub://pr/445d9c07-27d4-41bd-b578-9ac2317f28b6",
+  "schema_version": 1,
+  "self_assessment": {
+    "all_acs_have_tests": true,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "Both acceptance criteria are satisfied. AC1 is covered by the existing 'AC1: renders the current year' test. AC2 is covered by the new 'AC2: year is dynamic' test that mocks Date. Footer.tsx was already correct (using new Date().getFullYear()). All 125 repo tests pass; lint is clean."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/Footer.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/Footer.test.tsx"
+    }
+  ]
+}

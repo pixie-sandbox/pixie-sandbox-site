@@ -1,0 +1,37 @@
+{
+  "component_diagram": {
+    "kind": "flowchart",
+    "source": "flowchart LR\n  R[Runtime/System Clock] --> F[\"Footer.tsx (modify)\"]\n  F --> T[\"Footer.test.tsx (verify)\"]",
+    "title": "Footer Year Update Flow"
+  },
+  "components_touched": [
+    {
+      "change_kind": "modify",
+      "name": "components/Footer.tsx",
+      "summary": "Replace hardcoded year with dynamic `new Date().getFullYear()` (Note: The file currently already has this logic, checking if BA spec implies it was meant to be hardcoded or if it needs refinement)"
+    },
+    {
+      "change_kind": "new",
+      "name": "__tests__/Footer.test.tsx",
+      "summary": "Ensure existing test covers the dynamic year requirement."
+    }
+  ],
+  "contracts": [],
+  "data_changes": [],
+  "deferred_decisions": [],
+  "feature_id": "445d9c07-27d4-41bd-b578-9ac2317f28b6",
+  "rationale": "The repository check reveals that `components/Footer.tsx` already uses `new Date().getFullYear()`. However, the BA spec explicitly states: \"The Pixie sandbox site footer shows a hardcoded year. Render the current year instead\". \n\nI will treat the current implementation as the intended target (or assume the BA spec was written based on a version of the file that actually was hardcoded). My task for the SWE is to ensure the implementation matches the spec and that the unit test correctly validates this dynamic behavior.\n\nPrior Initiative decisions were reviewed: the Footer is correctly located at `components/Footer.tsx` and is integrated into the layout.\n\n## Memory writes\n- factual: The footer component currently uses `new Date().getFullYear()` in the repository, which aligns with the feature intent.",
+  "risks": [
+    {
+      "likelihood": "low",
+      "mitigation": "None needed for simple Date object call.",
+      "risk": "Timezone discrepancies between build server and user browser (unlikely to impact year display significantly)."
+    }
+  ],
+  "schema_version": 1,
+  "swe_constraints": [
+    "Ensure `components/Footer.tsx` uses `new Date().getFullYear()` to satisfy AC1.",
+    "Update or verify `__tests__/Footer.test.tsx` to ensure AC2 is met.",
+    "Do not introduce any manual configuration or override mechanisms."
+  ]
+}

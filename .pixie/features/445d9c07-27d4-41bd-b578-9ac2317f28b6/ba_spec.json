@@ -1,0 +1,53 @@
+{
+  "acceptance_criteria": [
+    {
+      "given": "A visitor views the Pixie sandbox site",
+      "id": "AC1",
+      "then": "the rendered text displays the current calendar year (e.g., 2024).",
+      "when": "The footer component is rendered"
+    },
+    {
+      "given": "The codebase is being tested",
+      "id": "AC2",
+      "then": "the tests pass by confirming the year matches the expected dynamic value.",
+      "when": "The footer component tests are executed"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "The 'current year' is determined by the server-side/runtime system clock without specific timezone offset requirements.",
+      "confidence": "high"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "The Pixie sandbox Next.js site currently uses a hardcoded year in its footer. This feature replaces the static year with a dynamic value that automatically renders the current calendar year, preventing the footer from appearing out of date. This involves updating the `components/Footer.tsx` component and adding a corresponding test.",
+  "constraints": [
+    {
+      "detail": "Change must be implemented within `components/Footer.tsx` per existing project structure.",
+      "kind": "other"
+    }
+  ],
+  "data_model": [],
+  "feature_id": "445d9c07-27d4-41bd-b578-9ac2317f28b6",
+  "flows": [],
+  "must": [
+    "The system shall render the current calendar year in the site footer.",
+    "The system shall use the current year provided by the runtime environment."
+  ],
+  "open_questions": [],
+  "outcome": null,
+  "rationale": "This is a low-complexity maintenance task. The primary goal is to remove manual intervention for a recurring yearly update. I've assumed standard runtime date fetching is sufficient, as specific timezone requirements for a footer year are rarely a business driver unless specified.\n\n## Memory writes\n- DECISION: The current year will be derived from the runtime environment clock.\n- FACTUAL: The footer component is located at `components/Footer.tsx`.",
+  "risks": [],
+  "rollout": null,
+  "schema_version": 1,
+  "should": [
+    "The system shall include a unit test verifying that the footer correctly renders the current year."
+  ],
+  "user_stories": [],
+  "users": [],
+  "wireframes": [],
+  "wont": [
+    "The system won't support manual year overrides or configuration files for this value."
+  ]
+}
