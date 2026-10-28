@@ -1,0 +1,91 @@
+{
+  "branch": "pixie/ab6283cc-b6da-4ecc-933b-2f815b666668",
+  "decisions_log": [
+    {
+      "decision": "Header imports VALID_ACCOUNT_IDS directly from lib/accounts.ts rather than moving the list into a new module with no data in it",
+      "rationale": "This keeps one source of truth without adding a file the spec doesn't name. The cost is that the fictional data/accounts.json (about 6 KB) goes into the client bundle. That data already ships in every account page, and the design accepted either choice. If bundle size matters later, the list can be moved out and re-exported from lib/accounts.ts."
+    },
+    {
+      "decision": "Visibility is an exact match: pathname === '/' or /^\\/accounts\\/([^/]+)$/ with the captured id in VALID_ACCOUNT_IDS (Array.includes, so case-sensitive)",
+      "rationale": "This is the same check app/accounts/[id]/page.tsx uses. It hides the strip on /accounts, /accounts/mystery, /accounts/EVERYDAY and /accounts/everyday/extra. A prefix match would show it on not-found pages, which is the risk the design names."
+    },
+    {
+      "decision": "Strip styling: a full-width div with bg-[var(--primary-blue-light)], holding a <p class='mx-auto max-w-5xl px-6 py-1 text-xs leading-5 whitespace-nowrap overflow-hidden text-ellipsis text-[var(--primary-blue-text)]'>",
+      "rationale": "It uses only existing palette tokens and no new hex colours. Measured contrast is 8.49:1 in light (#1e3a8a on #dbeafe) and 7.29:1 in dark (#bfdbfe on #1e3a8a), both above 4.5:1. The container matches the header row's alignment. Because the text cannot wrap, the strip stays one line at 375px; at text-xs the 24-character string is far narrower than 327px of content width."
+    },
+    {
+      "decision": "Added one test beyond the design's: rerender the mounted Header with a new pathname",
+      "rationale": "This covers the Must that the strip shows and hides on client-side navigation without a reload. The test passes a freshly built element each time, because reusing the same element object lets React skip the render, which would be a test artefact. It also checks the banner element stays the same node, so the header was not remounted."
+    },
+    {
+      "decision": "Ran Jest with --no-watchman locally",
+      "rationale": "The sandbox blocks watchman's state directory. This is a local quirk only; CI does not run jest and nothing in the repo changed for it."
+    }
+  ],
+  "deferred_questions": [
+    {
+      "blocker": false,
+      "question": "AC7 has no new test, by design. It is regression coverage by the existing suites. All 32 Jest suites (248 tests, including ThemeToggle.test.tsx) pass. e2e/banking.e2e.ts was NOT run: Playwright's Chromium is not installed in this workspace and installing it means a download. I read the spec instead and found nothing that conflicts with the strip: no assertion on the banner's exact text or count of children, getByText('Hello, Alex') is not matched by 'Signed in as Alex Taylor', and no new hex colours were added. Please run `npm run test:e2e` before merging."
+    },
+    {
+      "blocker": false,
+      "question": "AC8 (single line at 375px in both themes, header row unchanged) has no test. It is a visual layout check that jsdom cannot decide, and the spec gives it to a person to check before merging."
+    },
+    {
+      "blocker": false,
+      "question": "AC9 (contrast of at least 4.5:1 in both themes) has no automated test. jsdom does not resolve CSS custom properties, and the spec gives this to a person. Computed from the globals.css tokens for the PR: light #1e3a8a on #dbeafe = 8.49:1; dark #bfdbfe on #1e3a8a = 7.29:1."
+    },
+    {
+      "blocker": false,
+      "question": "AC10 (strip present with JavaScript disabled, and no layout shift on hydration) has no test; the spec gives it to a person. Partial evidence: after `npm run build`, .next/server/app/index.html contains 'Signed in as Alex Taylor', while changelog.html and _not-found.html do not. /accounts/[id] is rendered on demand, so it was not inspected statically."
+    }
+  ],
+  "feature_id": "ab6283cc-b6da-4ecc-933b-2f815b666668",
+  "files_changed": [
+    {
+      "change_kind": "modified",
+      "path": "components/Header.tsx",
+      "summary": "Adds isBankingPath() (exact '/' or '/accounts/<id>' with id in VALID_ACCOUNT_IDS, case-sensitive) and renders a single-line 'Signed in as Alex Taylor' <p> strip as the first child of <header> on those paths only; the existing row is untouched; the doc comment is updated"
+    },
+    {
+      "change_kind": "added",
+      "path": "__tests__/Header.test.tsx",
+      "summary": "The design's acceptance tests for AC1\u2013AC6, plus a test that rerenders a mounted Header across path changes (banking \u2192 /changelog \u2192 /) to check show and hide without a remount"
+    }
+  ],
+  "outcome": "built",
+  "pr_ref": "stub://pr/ab6283cc-b6da-4ecc-933b-2f815b666668",
+  "schema_version": 2,
+  "self_assessment": {
+    "all_acs_have_tests": false,
+    "all_must_addressed": true,
+    "constraints_honoured": true,
+    "notes": "AC1\u2013AC6 are covered by __tests__/Header.test.tsx, and every hiding test first checks that the strip is showing, so none can pass when the strip never renders. AC7\u2013AC10 have no new tests per the spec; each has a deferred_questions entry. CI checks run locally: npm ci, npm run lint, npx tsc --noEmit and npm run build all pass, and jest passes 248/248. e2e was not run because no Playwright browser is installed. app/layout.tsx and lib/accounts.ts are unchanged, and no dependency was added."
+  },
+  "tests_added": [
+    {
+      "covers_acceptance_criterion": "AC1",
+      "path": "__tests__/Header.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC2",
+      "path": "__tests__/Header.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC3",
+      "path": "__tests__/Header.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC4",
+      "path": "__tests__/Header.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC5",
+      "path": "__tests__/Header.test.tsx"
+    },
+    {
+      "covers_acceptance_criterion": "AC6",
+      "path": "__tests__/Header.test.tsx"
+    }
+  ]
+}
