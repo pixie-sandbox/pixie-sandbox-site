@@ -1,0 +1,404 @@
+{
+  "acceptance_criteria": [
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "a visitor on the Accounts overview at /",
+      "how": null,
+      "id": "AC1",
+      "then": "the header (banner landmark) contains the text \"Signed in as Alex Taylor\", the header's text contains no digits, and the header contains no heading element",
+      "when": "the header renders"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "a visitor on /accounts/everyday, /accounts/savings or /accounts/credit-card",
+      "how": null,
+      "id": "AC2",
+      "then": "the header contains the text \"Signed in as Alex Taylor\" on each of the three pages",
+      "when": "the header renders"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "a visitor who was on a banking page (where the strip shows)",
+      "how": null,
+      "id": "AC3",
+      "then": "the header does not contain the text \"Signed in as\"",
+      "when": "they are on /changelog"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "a visitor on /accounts/mystery, /accounts/EVERYDAY, /accounts, /accounts/everyday/extra or /no-such-page",
+      "how": null,
+      "id": "AC4",
+      "then": "the header does not contain the text \"Signed in as\" on any of them, while the same header on /accounts/everyday does",
+      "when": "the header renders"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "a visitor on /",
+      "how": null,
+      "id": "AC5",
+      "then": "there is exactly one banner landmark on the page, the \"Signed in as\" text is inside it, and it comes before the \"Northline Bank\" link in reading order",
+      "when": "the header renders"
+    },
+    {
+      "checked_by": "new_test",
+      "existing_tests": [],
+      "given": "a visitor on / where the strip shows",
+      "how": null,
+      "id": "AC6",
+      "then": "the header has no link or button named sign out or log out, its links are exactly Northline Bank, Accounts and Changelog in that order, and its only button is the theme toggle",
+      "when": "they look for a way to sign out"
+    },
+    {
+      "checked_by": "existing_tests",
+      "existing_tests": [
+        "e2e/banking.e2e.ts",
+        "__tests__/ThemeToggle.test.tsx"
+      ],
+      "given": "any page of the site",
+      "how": null,
+      "id": "AC7",
+      "then": "it behaves exactly as it did before",
+      "when": "the existing header, navigation, theme toggle, palette and changelog behaviour is exercised"
+    },
+    {
+      "checked_by": "a_person",
+      "existing_tests": [],
+      "given": "/ and /accounts/credit-card at 375px wide, in both light and dark themes",
+      "how": "Open / and /accounts/credit-card in browser dev tools at 375px width, toggle the theme, and compare the header row against main; the strip must be one line and the row beneath it unchanged.",
+      "id": "AC8",
+      "then": "the strip is a single line above the header row, the header row's site name, links and toggle sit where they did before the change, and nothing overlaps",
+      "when": "a person views the page"
+    },
+    {
+      "checked_by": "a_person",
+      "existing_tests": [],
+      "given": "the strip in light theme and in dark theme",
+      "how": "Use the browser's contrast checker (or the computed colours with a WCAG contrast calculator) on the strip text in each theme and record both ratios in the PR.",
+      "id": "AC9",
+      "then": "the contrast ratio is at least 4.5:1 in both themes",
+      "when": "its text colour is measured against its background"
+    },
+    {
+      "checked_by": "a_person",
+      "existing_tests": [],
+      "given": "a visitor loading / with JavaScript disabled",
+      "how": "Load / with JavaScript disabled in dev tools and confirm the strip shows; re-enable JavaScript, hard-reload, and confirm the header does not shift.",
+      "id": "AC10",
+      "then": "the strip is already visible in the server-rendered page, and with JavaScript enabled the page does not visibly jump when it finishes loading",
+      "when": "the page loads"
+    }
+  ],
+  "acceptance_tests": [
+    {
+      "covers": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC6"
+      ],
+      "entry_points": [
+        "@/components/Header",
+        "@/components/ThemeProvider"
+      ],
+      "path": "__tests__/Header.test.tsx",
+      "source": "import { render, screen, within, cleanup } from '@testing-library/react';\nimport { ThemeProvider } from '@/components/ThemeProvider';\nimport Header from '@/components/Header';\n\nlet mockPathname = '/';\njest.mock('next/navigation', () => ({\n  usePathname: () => mockPathname,\n}));\n\nconst SIGNED_IN = 'Signed in as Alex Taylor';\n\nfunction renderAt(pathname: string) {\n  cleanup();\n  mockPathname = pathname;\n  render(\n    <ThemeProvider>\n      <Header />\n    </ThemeProvider>\n  );\n  return screen.getByRole('banner');\n}\n\ndescribe('Header signed-in strip', () => {\n  beforeEach(() => {\n    localStorage.clear();\n    document.documentElement.classList.remove('dark');\n  });\n\n  it('AC1: shows the signed-in text on the Accounts overview, with no digits and no heading', () => {\n    const banner = renderAt('/');\n    expect(banner).toHaveTextContent(SIGNED_IN);\n    expect(banner.textContent ?? '').not.toMatch(/\\d/);\n    expect(within(banner).queryByRole('heading')).toBeNull();\n  });\n\n  it.each(['/accounts/everyday', '/accounts/savings', '/accounts/credit-card'])(\n    'AC2: shows the signed-in text on %s',\n    (path) => {\n      expect(renderAt(path)).toHaveTextContent(SIGNED_IN);\n    }\n  );\n\n  it('AC3: hides the strip on /changelog while it shows on a banking page', () => {\n    expect(renderAt('/accounts/savings')).toHaveTextContent(SIGNED_IN);\n    expect(renderAt('/changelog')).not.toHaveTextContent('Signed in as');\n  });\n\n  it.each([\n    '/accounts/mystery',\n    '/accounts/EVERYDAY',\n    '/accounts',\n    '/accounts/everyday/extra',\n    '/no-such-page',\n  ])('AC4: hides the strip on %s while it shows on /accounts/everyday', (path) => {\n    expect(renderAt('/accounts/everyday')).toHaveTextContent(SIGNED_IN);\n    expect(renderAt(path)).not.toHaveTextContent('Signed in as');\n  });\n\n  it('AC5: the strip sits inside the single banner, before the site name', () => {\n    renderAt('/');\n    expect(screen.getAllByRole('banner')).toHaveLength(1);\n    const banner = screen.getByRole('banner');\n    const strip = within(banner).getByText(/Signed in as/);\n    const siteName = within(banner).getByRole('link', { name: 'Northline Bank' });\n    expect(strip.compareDocumentPosition(siteName) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();\n  });\n\n  it('AC6: offers no sign-out and adds no links or buttons to the header', () => {\n    const banner = renderAt('/');\n    expect(banner).toHaveTextContent(SIGNED_IN);\n    expect(within(banner).queryByRole('link', { name: /sign ?out|log ?out/i })).toBeNull();\n    expect(within(banner).queryByRole('button', { name: /sign ?out|log ?out/i })).toBeNull();\n    expect(within(banner).getAllByRole('link').map((l) => (l.textContent ?? '').trim())).toEqual([\n      'Northline Bank',\n      'Accounts',\n      'Changelog',\n    ]);\n    expect(within(banner).getAllByRole('button')).toHaveLength(1);\n  });\n});"
+    }
+  ],
+  "api": [],
+  "assumptions": [
+    {
+      "assumption": "\"Banking pages\" means exactly / and the three account pages backed by VALID_ACCOUNT_IDS; any new account id added to that list later should show the strip too.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "The not-found page shown for an invalid account id keeps the browser path (e.g. /accounts/mystery), so deciding by path alone hides the strip there.",
+      "confidence": "high"
+    },
+    {
+      "assumption": "No feature flag is wanted for a sandbox demo change; it ships straight to the site.",
+      "confidence": "medium"
+    }
+  ],
+  "breakouts": [],
+  "clarified_description": "Add a thin 'signed-in' strip to the top of the Northline Bank sandbox site's header that reads \"Signed in as Alex Taylor\". The site has no authentication and deliberately behaves as if the fictional customer Alex Taylor is always signed in (lib/accounts.ts); the strip makes that visible the way real internet banking does. The strip is rendered inside the existing site header (components/Header.tsx, the page's single banner landmark), above the existing row of site name, navigation and theme toggle, which stays exactly as it is. It appears only on the banking pages: the Accounts overview at / and the three valid account detail pages /accounts/everyday, /accounts/savings and /accounts/credit-card. It is hidden on /changelog, on not-found pages (including invalid account ids such as /accounts/mystery), and on every other path. It is fixed text with no sign-out control and no data loading.",
+  "component_diagram": null,
+  "constraints": [
+    {
+      "detail": "No authentication exists in this repository (lib/accounts.ts, app/accounts/[id]/page.tsx). The strip is a display of the fixed demo identity and must not introduce or imply a session, cookie, token or auth context.",
+      "kind": "security"
+    },
+    {
+      "detail": "Next.js 16.2.6 / React 19.2.4. AGENTS.md warns this Next.js version has breaking changes; check node_modules/next/dist/docs/ before relying on any routing hook behaviour (usePathname is already used in Header.tsx).",
+      "kind": "integration"
+    },
+    {
+      "detail": "Header is mounted once, in app/layout.tsx, without props. The change must not require layout.tsx to pass anything new.",
+      "kind": "other"
+    }
+  ],
+  "contracts": [],
+  "contributions_applied": [],
+  "data_changes": [],
+  "data_model": [],
+  "deferred_decisions": [
+    "Whether Header imports VALID_ACCOUNT_IDS directly from lib/accounts.ts (which also imports data/accounts.json, pulling the fictional account data into the client bundle) or the engineer extracts the id list into a small data-free module that lib/accounts.ts re-exports. Either is acceptable; it is a bundle-size trade-off the engineer is better placed to judge, provided there remains one source of truth.",
+    "The exact strip styling (height, font size, background vs. border treatment) is left to the engineer within the palette and contrast constraints, because the user asked only for 'a thin strip' and the visual check in AC8/AC9 governs the result.",
+    "Whether the show/hide rule is a small helper inside Header.tsx or a separate function is left to the engineer; it is internal structure no criterion depends on."
+  ],
+  "feature_id": "ab6283cc-b6da-4ecc-933b-2f815b666668",
+  "flows": [
+    {
+      "kind": "flowchart",
+      "source": "graph TD\n  A[Header renders with current path] --> B{Path is exactly /?}\n  B -->|yes| S[Show Signed in as Alex Taylor]\n  B -->|no| C{Path is /accounts/id with id in VALID_ACCOUNT_IDS?}\n  C -->|yes| S\n  C -->|no| H[No strip]\n  S --> R[Existing header row unchanged]\n  H --> R",
+      "title": "Whether the header shows the signed-in strip"
+    }
+  ],
+  "must": [
+    "WHILE the current path is exactly /, /accounts/everyday, /accounts/savings or /accounts/credit-card the system shall show a strip in the site header reading \"Signed in as Alex Taylor\".",
+    "WHILE the current path is anything other than those four paths the system shall not show the signed-in strip, including /changelog, /accounts, any /accounts/<id> whose id is not in VALID_ACCOUNT_IDS (matched case-sensitively), any deeper path such as /accounts/everyday/extra, and any unknown path.",
+    "WHEN a visitor moves between a banking page and a non-banking page by client-side navigation the system shall show or hide the strip to match the new path without a full page reload.",
+    "The system shall render the strip inside the existing <header> element as its first content, above the row containing the Northline Bank site name, navigation and theme toggle, so the page keeps exactly one banner landmark.",
+    "The system shall render the strip as plain text that is not a heading, link or button, and shall not offer any sign-out or log-out control.",
+    "The system shall keep the existing header row unchanged: the Northline Bank link to /, the Accounts and Changelog nav links with their active-state accent, and the theme toggle.",
+    "The system shall source the strip's text from fixed code with no network, storage or session lookup, and the text shall contain no account number, digits or other customer data beyond the name.",
+    "The system shall render the strip's text and background from the existing palette tokens in app/globals.css so that its text meets WCAG 2.1 AA contrast (at least 4.5:1) in both the light and dark themes.",
+    "WHILE the viewport is 375px wide the system shall keep the strip to a single line without overlapping or reflowing the header row beneath it."
+  ],
+  "non_functional": [
+    {
+      "applies": false,
+      "category": "performance",
+      "criteria": [],
+      "target": null,
+      "why_not": "Fixed text derived from the already-available pathname; no fetching or computation of note."
+    },
+    {
+      "applies": false,
+      "category": "availability",
+      "criteria": [],
+      "target": null,
+      "why_not": "No new service, route or dependency is introduced."
+    },
+    {
+      "applies": true,
+      "category": "security",
+      "criteria": [
+        "AC6"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "category": "privacy",
+      "criteria": [
+        "AC1"
+      ],
+      "target": null,
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "observability",
+      "criteria": [],
+      "target": null,
+      "why_not": "Static display text with no failure mode worth logging or measuring."
+    },
+    {
+      "applies": true,
+      "category": "accessibility",
+      "criteria": [
+        "AC1",
+        "AC5",
+        "AC9"
+      ],
+      "target": "WCAG 2.1 AA: text contrast at least 4.5:1 in both themes; exactly one banner landmark; strip is not a heading",
+      "why_not": null
+    },
+    {
+      "applies": false,
+      "category": "compliance",
+      "criteria": [],
+      "target": null,
+      "why_not": "Fictional demo customer name only; no regulated data is displayed."
+    }
+  ],
+  "open_questions": [],
+  "outcome": "Visitors on the Northline Bank sandbox's banking pages see a thin strip at the top of the header saying \"Signed in as Alex Taylor\".",
+  "rationale": "**Why inside the existing header.** The user asked for a strip above the current header. Putting it inside the existing `<header>` (rather than as a sibling in app/layout.tsx) keeps a single banner landmark, so screen readers announce it with the rest of the header, and keeps all header logic in the one client component that already reads the path via `usePathname`. layout.tsx needs no change.\n\n**Why decide by exact path.** Header.tsx already has the current pathname. Showing the strip only for `/` and `/accounts/<id>` where id is in `VALID_ACCOUNT_IDS` hides it on not-found pages without any extra signal from the page, and stays in step if an account is added. A prefix check (`startsWith('/accounts')`) would wrongly show it on `/accounts/mystery`, which the user explicitly did not want (the choice the user delegated was resolved to 'hide it there').\n\n**Wording and no sign-out.** \"Signed in as Alex Taylor\" is the familiar internet-banking phrasing and does not duplicate the page's \"Hello, Alex\" greeting. A sign-out link that does nothing would confuse visitors, so there is none.\n\n**Tests.** No Header unit test exists today; a new `__tests__/Header.test.tsx` follows the flat `<Component>.test.tsx` convention and mocks `next/navigation`'s `usePathname` as the changelog tests already do. Every hiding test first renders a banking path and asserts the strip shows, so it cannot pass vacuously against today's header (DTI-01). The inputs are chosen against specific wrong implementations: `/changelog` (shown everywhere), `/accounts/mystery` and `/accounts` (prefix match), `/accounts/EVERYDAY` (case-insensitive match), `/accounts/everyday/extra` (startsWith on a valid id). AC7 is regression coverage by the existing e2e suite and ThemeToggle tests; AC8\u2013AC10 are visual and server-render checks that jsdom cannot decide, so a person checks them (UMC-01).\n\nI read the repository for this: components/Header.tsx, app/layout.tsx, app/page.tsx, app/accounts/[id]/page.tsx, lib/accounts.ts, app/globals.css, components/ThemeToggle.tsx, __tests__/ThemeToggle.test.tsx, jest.setup.ts and e2e/banking.e2e.ts.",
+  "risks": [
+    {
+      "mitigation": "Match exact paths against VALID_ACCOUNT_IDS; AC4 tests /accounts/mystery, /accounts, /accounts/EVERYDAY and /accounts/everyday/extra.",
+      "reference": null,
+      "severity": "medium",
+      "title": "Strip shows on not-found pages via a prefix match on /accounts"
+    },
+    {
+      "mitigation": "Keep it a single short line in its own row above the existing one; checked at 375px in both themes (AC8).",
+      "reference": null,
+      "severity": "low",
+      "title": "Strip pushes or wraps the header row on narrow phones"
+    },
+    {
+      "mitigation": "The engineer may extract VALID_ACCOUNT_IDS into a data-free module re-exported by lib/accounts.ts (deferred decision); data is fictional either way.",
+      "reference": null,
+      "severity": "low",
+      "title": "Account data pulled into the client bundle by importing lib/accounts.ts from Header"
+    }
+  ],
+  "rollout": {
+    "flags": [],
+    "metrics": [
+      "Jest suite pass rate (100%)",
+      "Playwright e2e suite pass rate (100%)"
+    ],
+    "stages": [
+      "Development",
+      "Full release"
+    ]
+  },
+  "schema_version": 11,
+  "should": [
+    "The system should align the strip's text with the header row's content by using the same centred max-w-5xl px-6 container as the existing header row.",
+    "The system should include the strip in the server-rendered HTML for banking pages so it is present on first paint and does not shift the page when hydration completes."
+  ],
+  "standards_applied": [
+    {
+      "applies": false,
+      "criteria": [],
+      "sections": [],
+      "standard": "ANZ Digital \u2014 Date & Time Display Standard (DTS-04)",
+      "why_not": "The strip shows no date or time; a last-signed-in timestamp was explicitly ruled out (see wont)."
+    },
+    {
+      "applies": false,
+      "criteria": [],
+      "sections": [],
+      "standard": "ANZ Engineering \u2014 Database Write Result Standard (DWR-01)",
+      "why_not": "The change writes nothing to any database; the strip is fixed text in a client component."
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC3",
+        "AC4",
+        "AC5",
+        "AC6"
+      ],
+      "sections": [
+        "The rule",
+        "How to choose the input"
+      ],
+      "standard": "ANZ Engineering \u2014 Discriminating Test Inputs Standard (DTI-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC7",
+        "AC8",
+        "AC9",
+        "AC10"
+      ],
+      "sections": [
+        "The rule",
+        "What a good entry looks like"
+      ],
+      "standard": "ANZ Engineering \u2014 Unmet Criteria Standard (UMC-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC1",
+        "AC6"
+      ],
+      "sections": [
+        "\u00a71 Secrets",
+        "\u00a74 Sensitive data"
+      ],
+      "standard": "ANZ Security \u2014 Secure Coding Standard (SEC-01)",
+      "why_not": null
+    },
+    {
+      "applies": true,
+      "criteria": [
+        "AC1"
+      ],
+      "sections": [
+        "1. Internal references must not be surfaced"
+      ],
+      "standard": "Payments Content Policy (PCP-02) \u2014 customer-facing copy",
+      "why_not": null
+    }
+  ],
+  "swe_constraints": [
+    "Keep Header.tsx a 'use client' component and decide visibility from the existing usePathname() value; do not add a new prop to Header or change app/layout.tsx.",
+    "The set of account pages that show the strip must come from VALID_ACCOUNT_IDS (lib/accounts.ts), not a second hand-typed list that can drift from it; match the id case-sensitively, as app/accounts/[id]/page.tsx does.",
+    "Use the existing palette tokens from app/globals.css (--primary-blue-light, --primary-blue-text, the zinc scale); for example, --primary-blue-text on --primary-blue-light pairs at well above 4.5:1 in both themes. Do not introduce new hex colours (the e2e branding test forbids ANZ brand blues in source).",
+    "Align the strip's content with the existing header row container (mx-auto max-w-5xl px-6) and leave the row's classes and structure as they are.",
+    "Render the strip text as plain, framework-escaped JSX text; no dangerouslySetInnerHTML.",
+    "Do not add a dependency."
+  ],
+  "touches": [
+    {
+      "exists": true,
+      "path": "components/Header.tsx",
+      "reason": "The strip and its show/hide rule land here, as the first content inside the existing <header>; the doc comment listing what Header renders should be updated to match.",
+      "repository": null
+    },
+    {
+      "exists": false,
+      "path": "__tests__/Header.test.tsx",
+      "reason": "New unit test for Header; convention is flat __tests__/<Component>.test.tsx (cf. ThemeToggle.test.tsx, Footer.test.tsx).",
+      "repository": null
+    },
+    {
+      "exists": true,
+      "path": "lib/accounts.ts",
+      "reason": "Defines VALID_ACCOUNT_IDS, the source of truth for which account pages are banking pages. Read by the change; modified only if the engineer moves the id list somewhere data-free (see deferred_decisions).",
+      "repository": null
+    }
+  ],
+  "user_stories": [
+    {
+      "criteria": [
+        "\"Signed in as Alex Taylor\" shows above the header row on / and the three account pages",
+        "It does not show on Changelog or any not-found page",
+        "There is no sign-out control"
+      ],
+      "references": [],
+      "role": "sandbox site visitor",
+      "so_that": "the demo reads like a real internet-banking session for Alex Taylor",
+      "want": "to see who is signed in at the top of the banking pages"
+    }
+  ],
+  "users": [
+    {
+      "jobs_to_be_done": [
+        "Explore the Northline Bank demo as if they were a signed-in customer"
+      ],
+      "name": "Sandbox site visitor (demo audience)",
+      "pain_points": [
+        "Nothing in the header shows whose accounts they are looking at, which makes the demo feel less like real internet banking"
+      ]
+    }
+  ],
+  "wireframes": [],
+  "wont": [
+    "Any real sign-in, session, authentication context or user lookup.",
+    "A sign-out, log-out, profile or account-switching control in the strip.",
+    "A last-signed-in date or time, or any other timestamp.",
+    "Showing the strip on /changelog, not-found pages or any non-banking page.",
+    "Changing the 'Hello, Alex' greeting on the Accounts overview page.",
+    "A feature flag or any configuration to turn the strip on or off."
+  ]
+}
