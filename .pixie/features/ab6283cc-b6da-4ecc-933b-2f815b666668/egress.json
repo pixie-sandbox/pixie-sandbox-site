@@ -1,0 +1,7 @@
+{
+  "allowlist": null,
+  "description": "Unrestricted \u2014 no Domain in this branch sets an egress allowlist.",
+  "enforcement": "unrestricted",
+  "filesystem": "contained",
+  "network_not_contained_because": "this provider fences the filesystem, not the network"
+}
